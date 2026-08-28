@@ -18,13 +18,13 @@
   - rename an existing item
   - delete an item
   - mark an item as bought (checkmark) and uncheck it
-  - ordering: unchecked items stay in the order they were added; checked (bought) items are moved to the end of the list (unchecking restores their position)
+  - ordering: items display in two visual sections - unchecked at top, checked (bought) at bottom; within each section, items are sorted by creation time. No manual reordering. Checking moves an item to the checked section; unchecking restores it to its original position in the unchecked section (based on creation time)
 - UI layout: two screens - a "list of lists" screen and a per-list items screen, with navigation (back) between them
 - interaction pattern: FAB (+) to add a list / item, tap-and-hold (long-press) context menu for rename/delete
 - lists screen shows per-list summary: total item count and bought count
 - NOT in scope initially
   - quantities / units per item (only item names)
-  - manual reordering - items stay in the order they were added (bought items always move to the end)
+  - manual reordering - not in scope; items are always ordered by creation time within their section (unchecked/checked)
 - persistence
   - lists and items are stored locally in phone memory and survive app restarts
 - runtime environment

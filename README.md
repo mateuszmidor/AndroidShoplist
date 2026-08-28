@@ -42,6 +42,10 @@ Notes:
 - Pacman's regular repos only have the command-line tools (`android-tools`); the IDE itself comes from the AUR.
 - If you later want the on-screen emulator, enable the `multilib` repo — the SDK's 32-bit tooling and emulator depend on `lib32-*` packages.
 
+## Running the appp in emulator 
+
+Pixel 5a and 6a can be used 
+
 ## Deploying the app to the phone (Samsung Galaxy A52)
 
 One-time phone setup:

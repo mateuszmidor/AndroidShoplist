@@ -23,7 +23,7 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Proves Room persistence works end-to-end.
 
-- [ ] Create `ShoppingListEntity` (`id: Long`, `name: String`, `createdAt: Long`)
+- [ ] Create `ShoppingListEntity` (`id: UUID`, `name: String`, `createdAt: Long`)
 - [ ] Create `ShoppingListDao` with `Flow` queries and CRUD operations
 - [ ] Create `ShoppingListRepository` interface
 - [ ] Create `RoomShoppingListRepository` implementation
@@ -54,7 +54,7 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Second screen, mirroring the lists pattern. Completes the two-screen navigation model.
 
-- [ ] Create `ShoppingItemEntity` (`id`, `listId`, `name`, `bought`, `createdAt`)
+- [ ] Create `ShoppingItemEntity` (`id: UUID`, `listId: UUID`, `name`, `bought`, `createdAt`)
 - [ ] Create `ShoppingItemDao` with CRUD + Flow queries by list
 - [ ] Create `ShoppingItemRepository` interface + Room implementation
 - [ ] Wire item repository into `AppContainer`
@@ -62,7 +62,7 @@ Each change is self-contained and delivers something testable.
 - [ ] Create Items screen (LazyColumn) showing items in a list
 - [ ] Implement FAB (+) to add item
 - [ ] Implement long-press context menu: rename/delete
-- [ ] Wire navigation: lists -> items (with list ID argument)
+- [ ] Wire navigation: lists -> items (with list UUID argument)
 - [ ] Implement back navigation from items -> lists
 - [ ] Write unit tests for ViewModel
 - [ ] Write integration tests for item data layer

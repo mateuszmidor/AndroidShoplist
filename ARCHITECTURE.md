@@ -1,4 +1,6 @@
-# Architectural Drivers, based on https://github.com/mateuszmidor/ArchStudy/tree/master/Drivers
+# Architectural Drivers 
+
+Based on https://github.com/mateuszmidor/ArchStudy/tree/master/Drivers
 
 ## Project goal
 

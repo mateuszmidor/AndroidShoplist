@@ -16,6 +16,6 @@ ad-free shopping list for android to replace Listonic which is full of ads and o
 
 - Now before we start implementing anything, let's prepare ARCHITECTURE.md file that gathers requirements (functional, quality), constraints, conventions, like described in https://github.com/mateuszmidor/ArchStudy/tree/master/Drivers. So now you must read the linked document, and confirm you  understand it
 
-- Now you will ask all questions relevant to this project based on the web document, one by one, I will answer them, and you will populate ARCHITECTURE.md along the way. Lets go!
+- Now you will ask me all questions relevant to this project based on the web document, one by one, I will answer them, and you will populate ARCHITECTURE.md along the way. Lets go!
 
 `then happened a series of 22 question-answer pingpong`

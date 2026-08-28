@@ -9,13 +9,13 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Proves the build toolchain, dependencies, and runtime environment work.
 
-- [ ] Create Android project structure (Gradle Kotlin DSL)
-- [ ] Configure dependencies: Compose, Room, Navigation Compose, Coroutines
-- [ ] Set up `AppContainer` for manual DI (empty shell)
-- [ ] Create empty Compose `App()` that launches with a placeholder
-- [ ] Create `Application` class
-- [ ] Configure project (minSdk, targetSdk, compileSdk, etc.)
-- [ ] Verify app compiles and launches on target device
+- [X] Create Android project structure (Gradle Kotlin DSL)
+- [X] Configure dependencies: Compose, Room, Navigation Compose, Coroutines
+- [X] Set up `AppContainer` for manual DI (empty shell)
+- [X] Create empty Compose `App()` that launches with a placeholder
+- [X] Create `Application` class
+- [X] Configure project (minSdk, targetSdk, compileSdk, etc.)
+- [X] Verify app compiles and launches on target device
 
 ---
 

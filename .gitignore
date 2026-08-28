@@ -1,3 +1,22 @@
+# Gradle
+.gradle/
+build/
+/app/build/
+/captures
+
+# Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
+.kotlin/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+/out/
+
 # Compiled class file
 *.class
 
@@ -23,7 +42,6 @@
 hs_err_pid*
 replay_pid*
 
-# Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
-.kotlin/
-
-local.properties
+# OS
+.DS_Store
+Thumbs.db

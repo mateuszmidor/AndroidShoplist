@@ -23,14 +23,14 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Proves Room persistence works end-to-end.
 
-- [ ] Create `ShoppingListEntity` (`id: UUID`, `name: String`, `createdAt: Long`)
-- [ ] Create `ShoppingListDao` with `Flow` queries and CRUD operations
-- [ ] Create `ShoppingListRepository` interface
-- [ ] Create `RoomShoppingListRepository` implementation
-- [ ] Create `ShoppingDatabase` (Room `@Database`)
-- [ ] Wire `AppContainer` to provide repository
-- [ ] Write in-memory Room integration tests for DAO
-- [ ] Write integration tests for repository
+- [X] Create `ShoppingListEntity` (`id: UUID`, `name: String`, `createdAt: Long`)
+- [X] Create `ShoppingListDao` with `Flow` queries and CRUD operations
+- [X] Create `ShoppingListRepository` interface
+- [X] Create `RoomShoppingListRepository` implementation
+- [X] Create `ShoppingDatabase` (Room `@Database`)
+- [X] Wire `AppContainer` to provide repository
+- [X] Write in-memory Room integration tests for DAO
+- [X] Write integration tests for repository
 
 ---
 

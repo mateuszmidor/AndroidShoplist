@@ -1,6 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.androidx.room3)
+    alias(libs.plugins.ksp)
+}
+
+room3 {
+    schemaDirectory("debug", "$projectDir/schemas/debug")
+    schemaDirectory("release", "$projectDir/schemas/release")
 }
 
 android {
@@ -44,7 +51,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.room3.runtime)
+    ksp(libs.androidx.room3.compiler)
     testImplementation(libs.junit)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

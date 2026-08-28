@@ -104,7 +104,7 @@ Based on https://github.com/mateuszmidor/ArchStudy/tree/master/Drivers
 ## Architecture risks to mitigate
 
 - the team lacks experience with the technology (solo Kotlin/Android beginner)
-  - mitigation: start with the smallest vertical slice that teaches the whole stack; follow official Google guidance and templates; leverage senior experience in software engineering fundamentals; iterate in small testable steps
+  - mitigation: start with the smallest MVP that teaches the whole stack; follow official Google guidance and templates; leverage senior experience in software engineering fundamentals; iterate in small testable steps
 - data loss / corruption
   - mitigation: Room + reliable transactional writes; enable Android auto-backup early in the project, not as an afterthought; keep data model versioned for future migrations
 - NOT risks for this project: third-party data formats, external system unavailability, scaling, single points of failure, off-the-shelf product failures, vendor lock-in - single user, no integrations, no network
@@ -118,4 +118,4 @@ Based on https://github.com/mateuszmidor/ArchStudy/tree/master/Drivers
 - structural consistency and integrity: keep layering boundaries respected (UI never touches Room directly); enforce via code review / simplicity, not tooling
 - foundations sufficiency: the storage schema and entity model must support the core features cleanly before adding nice-to-haves
 - future outlook (keep in mind, NOT in initial scope): quantities/units per item, manual reordering, sharing lists, cloud/companion sync
-- evaluation of foundations: before building more features, the vertical slice must prove the whole stack works end-to-end on the target device
+- evaluation of foundations: before building more features, the MVP must prove the whole stack works end-to-end on the target device

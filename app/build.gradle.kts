@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.shoplist"
+    namespace = "org.mateuszmidor.shoplist"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.shoplist"
+        applicationId = "org.mateuszmidor.shoplist"
         minSdk = 30
         targetSdk = 37
         versionCode = 1

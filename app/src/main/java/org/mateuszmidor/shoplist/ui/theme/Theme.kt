@@ -1,4 +1,4 @@
-package com.example.shoplist.ui.theme
+package org.mateuszmidor.shoplist.ui.theme
 
 import android.app.Activity
 import android.os.Build

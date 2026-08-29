@@ -73,11 +73,11 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Core shopping functionality — marking items as bought and visual split.
 
-- [ ] Implement item tap to toggle `bought` field
-- [ ] Add checkmark/bought visual indicator
-- [ ] Implement ordering: unchecked items (by createdAt) at top, checked at bottom
-- [ ] Write tests for ordering logic
-- [ ] Verify bought/unbought transitions work correctly
+- [X] Implement item tap to toggle `bought` field
+- [X] Add checkmark/bought visual indicator
+- [X] Implement ordering: unchecked items (by createdAt) at top, checked at bottom
+- [X] Write tests for ordering logic
+- [X] Verify bought/unbought transitions work correctly
 
 ---
 

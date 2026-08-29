@@ -14,6 +14,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -115,6 +117,42 @@ class ItemsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf(keep), viewModel.uiState.value.items.map { it.id })
+    }
+
+    @Test
+    fun toggleItemBought_flipsBoughtFlagInState() = runTest(dispatcher) {
+        val repository = FakeShoppingItemRepository()
+        val id = repository.create(listId, "Milk")
+        val viewModel = ItemsViewModel(repository, listId)
+        collectState(viewModel)
+
+        viewModel.toggleItemBought(id)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.items.single().bought)
+
+        viewModel.toggleItemBought(id)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.items.single().bought)
+    }
+
+    @Test
+    fun toggleItemBought_groupsUncheckedFirstThenChecked_eachByCreationTime() = runTest(dispatcher) {
+        val repository = FakeShoppingItemRepository()
+        val a = repository.create(listId, "A")
+        val b = repository.create(listId, "B")
+        val c = repository.create(listId, "C")
+        val viewModel = ItemsViewModel(repository, listId)
+        collectState(viewModel)
+
+        viewModel.toggleItemBought(b)
+        advanceUntilIdle()
+
+        assertEquals(listOf("A", "C", "B"), viewModel.uiState.value.items.map { it.name })
+
+        viewModel.toggleItemBought(b)
+        advanceUntilIdle()
+
+        assertEquals(listOf("A", "B", "C"), viewModel.uiState.value.items.map { it.name })
     }
 
     private fun TestScope.collectState(viewModel: ItemsViewModel) {

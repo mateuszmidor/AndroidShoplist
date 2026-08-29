@@ -1,6 +1,9 @@
 package org.mateuszmidor.shoplist.ui.items
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -10,6 +13,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +32,7 @@ import org.mateuszmidor.shoplist.data.ShoppingDatabase
 class ItemsViewModelIntegrationTest {
 
     private lateinit var database: ShoppingDatabase
+    private lateinit var viewModelStore: ViewModelStore
     private lateinit var viewModel: ItemsViewModel
     private lateinit var listId: UUID
 
@@ -37,11 +43,20 @@ class ItemsViewModelIntegrationTest {
         val listRepository = RoomShoppingListRepository(database.shoppingListDao())
         val repository = RoomShoppingItemRepository(database.shoppingItemDao())
         listId = runBlocking { listRepository.create("Groceries") }
-        viewModel = ItemsViewModel(repository, listId)
+        viewModelStore = ViewModelStore()
+        viewModel = ViewModelProvider(
+            viewModelStore,
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    ItemsViewModel(repository, listId) as T
+            },
+        )[ItemsViewModel::class.java]
     }
 
     @After
     fun tearDown() {
+        viewModelStore.clear()
         database.close()
     }
 
@@ -76,6 +91,32 @@ class ItemsViewModelIntegrationTest {
         assertEquals((ids - id).single(), remaining.id)
         assertEquals("Bread", remaining.name)
         assertEquals(listOf("Bread"), viewModel.uiState.value.items.map { it.name })
+    }
+
+    @Test
+    fun toggleBoughtRoundTrip_reordersUiStateAndDomain_reflectsBothTransitionsInDatabase() = runBlocking {
+        viewModel.addItem("Milk")
+        viewModel.addItem("Bread")
+        viewModel.addItem("Eggs")
+        val items = uiStateUntil { it.items.size == 3 }.items
+        val milk = items.first { it.name == "Milk" }
+        val bread = items.first { it.name == "Bread" }
+        val eggs = items.first { it.name == "Eggs" }
+        assertEquals(listOf("Milk", "Bread", "Eggs"), viewModel.uiState.value.items.map { it.name })
+
+        viewModel.toggleItemBought(bread.id)
+        uiStateUntil { state -> state.items.map { it.name } == listOf("Milk", "Eggs", "Bread") }
+        val dbChecked = database.shoppingItemDao().observeByList(listId)
+            .first { items -> items.first { it.id == bread.id }.bought }
+        assertTrue(dbChecked.first { it.id == bread.id }.bought)
+        assertEquals(listOf(milk.id, eggs.id, bread.id), dbChecked.map { it.id })
+
+        viewModel.toggleItemBought(bread.id)
+        uiStateUntil { state -> state.items.map { it.name } == listOf("Milk", "Bread", "Eggs") }
+        val dbUnchecked = database.shoppingItemDao().observeByList(listId)
+            .first { items -> !items.first { it.id == bread.id }.bought }
+        assertFalse(dbUnchecked.first { it.id == bread.id }.bought)
+        assertEquals(listOf(milk.id, bread.id, eggs.id), dbUnchecked.map { it.id })
     }
 
     private suspend fun uiStateUntil(predicate: (ItemsUiState) -> Boolean): ItemsUiState =

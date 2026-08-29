@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -79,6 +80,63 @@ class ShoppingItemDaoTest {
         itemDao.deleteById(item.id)
 
         assertTrue(itemDao.observeByList(item.listId).first().isEmpty())
+    }
+
+    @Test
+    fun toggleBought_flipsFlagAndPreservesAllOtherFields() = runTest {
+        val listId = createList()
+        val item = entity(listId = listId, name = "Milk", createdAt = 100)
+        itemDao.insert(item)
+
+        itemDao.toggleBought(item.id)
+
+        val checked = itemDao.observeByList(listId).first().single()
+        assertTrue(checked.bought)
+        assertEquals(item.id, checked.id)
+        assertEquals(item.listId, checked.listId)
+        assertEquals(item.name, checked.name)
+        assertEquals(item.createdAt, checked.createdAt)
+
+        itemDao.toggleBought(item.id)
+
+        val unchecked = itemDao.observeByList(listId).first().single()
+        assertFalse(unchecked.bought)
+    }
+
+    @Test
+    fun observeByList_emitsUncheckedFirstThenChecked_eachOrderedByCreationTime() = runTest {
+        val listId = createList()
+        val items = listOf("A", "B", "C", "D").mapIndexed { i, name ->
+            entity(listId = listId, name = name, createdAt = 100L * (i + 1))
+        }
+        items.forEach { itemDao.insert(it) }
+
+        itemDao.toggleBought(items[1].id)
+        itemDao.toggleBought(items[3].id)
+
+        val observed = itemDao.observeByList(listId).first()
+
+        assertEquals(listOf("A", "C", "B", "D"), observed.map { it.name })
+        assertEquals(listOf("A", "C"), observed.filterNot { it.bought }.map { it.name })
+        assertEquals(listOf("B", "D"), observed.filter { it.bought }.map { it.name })
+    }
+
+    @Test
+    fun unchecking_restoresItemToItsCreationTimePositionInUncheckedSection() = runTest {
+        val listId = createList()
+        val items = listOf("A", "B", "C").mapIndexed { i, name ->
+            entity(listId = listId, name = name, createdAt = 100L * (i + 1))
+        }
+        items.forEach { itemDao.insert(it) }
+
+        itemDao.toggleBought(items[1].id)
+        assertEquals(listOf("A", "C", "B"), itemDao.observeByList(listId).first().map { it.name })
+
+        itemDao.toggleBought(items[1].id)
+        val restored = itemDao.observeByList(listId).first()
+
+        assertEquals(listOf("A", "B", "C"), restored.map { it.name })
+        assertFalse(restored[1].bought)
     }
 
     @Test

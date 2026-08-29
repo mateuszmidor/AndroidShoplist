@@ -12,4 +12,6 @@ interface ShoppingItemRepository {
     suspend fun rename(id: UUID, name: String)
 
     suspend fun delete(id: UUID)
+
+    suspend fun toggleBought(id: UUID)
 }

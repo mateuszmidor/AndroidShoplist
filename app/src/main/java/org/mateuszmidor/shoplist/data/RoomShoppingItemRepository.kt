@@ -19,4 +19,6 @@ class RoomShoppingItemRepository(
     override suspend fun rename(id: UUID, name: String) = dao.renameById(id, name)
 
     override suspend fun delete(id: UUID) = dao.deleteById(id)
+
+    override suspend fun toggleBought(id: UUID) = dao.toggleBought(id)
 }

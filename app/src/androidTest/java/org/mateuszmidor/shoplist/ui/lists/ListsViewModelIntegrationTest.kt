@@ -1,6 +1,9 @@
 package org.mateuszmidor.shoplist.ui.lists
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -26,6 +29,7 @@ import org.mateuszmidor.shoplist.data.ShoppingDatabase
 class ListsViewModelIntegrationTest {
 
     private lateinit var database: ShoppingDatabase
+    private lateinit var viewModelStore: ViewModelStore
     private lateinit var viewModel: ListsViewModel
 
     @Before
@@ -33,11 +37,20 @@ class ListsViewModelIntegrationTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder<ShoppingDatabase>(context).build()
         val repository = RoomShoppingListRepository(database.shoppingListDao())
-        viewModel = ListsViewModel(repository)
+        viewModelStore = ViewModelStore()
+        viewModel = ViewModelProvider(
+            viewModelStore,
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    ListsViewModel(repository) as T
+            },
+        )[ListsViewModel::class.java]
     }
 
     @After
     fun tearDown() {
+        viewModelStore.clear()
         database.close()
     }
 

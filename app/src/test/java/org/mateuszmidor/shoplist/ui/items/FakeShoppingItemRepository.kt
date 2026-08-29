@@ -8,8 +8,10 @@ import org.mateuszmidor.shoplist.data.ShoppingItemEntity
 import org.mateuszmidor.shoplist.data.ShoppingItemRepository
 
 /**
- * In-memory [ShoppingItemRepository] for unit tests. Emission order mirrors
- * append order within a list (the Room DAO orders by creation time).
+ * In-memory [ShoppingItemRepository] for unit tests. After every mutation the
+ * stored items are re-sorted in the same order the Room DAO enforces:
+ * unchecked items first, then checked, each section by creation time with the
+ * UUID as a stable tiebreak.
  */
 class FakeShoppingItemRepository : ShoppingItemRepository {
 
@@ -22,16 +24,29 @@ class FakeShoppingItemRepository : ShoppingItemRepository {
 
     override suspend fun create(listId: UUID, name: String): UUID {
         val id = UUID.randomUUID()
-        items.value = items.value +
-            ShoppingItemEntity(id = id, listId = listId, name = name, createdAt = nextCreatedAt++)
+        items.value = order(
+            items.value +
+                ShoppingItemEntity(id = id, listId = listId, name = name, createdAt = nextCreatedAt++),
+        )
         return id
     }
 
     override suspend fun rename(id: UUID, name: String) {
-        items.value = items.value.map { if (it.id == id) it.copy(name = name) else it }
+        items.value = order(items.value.map { if (it.id == id) it.copy(name = name) else it })
     }
 
     override suspend fun delete(id: UUID) {
-        items.value = items.value.filterNot { it.id == id }
+        items.value = order(items.value.filterNot { it.id == id })
     }
+
+    override suspend fun toggleBought(id: UUID) {
+        items.value = order(items.value.map { if (it.id == id) it.copy(bought = !it.bought) else it })
+    }
+
+    private fun order(list: List<ShoppingItemEntity>): List<ShoppingItemEntity> =
+        list.sortedWith(
+            compareBy<ShoppingItemEntity> { it.bought }
+                .thenBy { it.createdAt }
+                .thenBy { it.id },
+        )
 }

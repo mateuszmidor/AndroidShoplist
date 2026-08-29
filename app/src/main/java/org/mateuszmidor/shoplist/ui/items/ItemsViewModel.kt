@@ -39,4 +39,8 @@ class ItemsViewModel(
     fun deleteItem(id: UUID) {
         viewModelScope.launch { repository.delete(id) }
     }
+
+    fun toggleItemBought(id: UUID) {
+        viewModelScope.launch { repository.toggleBought(id) }
+    }
 }

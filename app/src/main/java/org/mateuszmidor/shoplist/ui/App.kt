@@ -1,26 +1,53 @@
 package org.mateuszmidor.shoplist.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import kotlin.reflect.typeOf
 import org.mateuszmidor.shoplist.di.AppContainer
+import org.mateuszmidor.shoplist.navigation.Items
+import org.mateuszmidor.shoplist.navigation.Lists
+import org.mateuszmidor.shoplist.navigation.ListId
+import org.mateuszmidor.shoplist.navigation.ListIdNavType
+import org.mateuszmidor.shoplist.ui.items.PlaceholderItemsScreen
+import org.mateuszmidor.shoplist.ui.lists.ListsScreen
+import org.mateuszmidor.shoplist.ui.lists.ListsViewModel
 
 /**
- * Root composable of the app.
- *
- * This is the stable UI entry point rendered by [org.mateuszmidor.shoplist.MainActivity].
- * Later changes (02/03) mount the lists and items screens navigation here; for
- * now it shows a placeholder so the app is verifiable on device.
+ * Root composable of the app. Hosts the navigation graph: the lists screen as
+ * the start destination and the items route (placeholder until change 03).
  */
 @Composable
 fun App(container: AppContainer) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = Lists,
     ) {
-        Text(text = "ShopList")
+        composable<Lists> {
+            val viewModel: ListsViewModel =
+                viewModel { ListsViewModel(container.shoppingListRepository) }
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            ListsScreen(
+                uiState = uiState,
+                onCreateList = viewModel::createList,
+                onRenameList = viewModel::renameList,
+                onDeleteList = viewModel::deleteList,
+                onOpenList = { listId -> navController.navigate(Items(listId = ListId(listId))) },
+            )
+        }
+        composable<Items>(typeMap = mapOf(typeOf<ListId>() to ListIdNavType)) { backStackEntry ->
+            val route = backStackEntry.toRoute<Items>()
+            PlaceholderItemsScreen(
+                listId = route.listId.value,
+                onBack = { navController.popBackStack() },
+            )
+        }
     }
 }

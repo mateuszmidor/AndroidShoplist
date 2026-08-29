@@ -38,15 +38,15 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: First real feature — proves UI -> ViewModel -> Repository -> Room pipeline.
 
-- [ ] Create `ListsViewModel` with `StateFlow<ListsUiState>`
-- [ ] Create Lists screen (LazyColumn) showing all lists
-- [ ] Implement FAB (+) to create a new list
-- [ ] Implement long-press context menu: rename
-- [ ] Implement long-press context menu: delete
-- [ ] Set up Navigation Compose with lists screen as start destination
-- [ ] Add placeholder navigation to items screen
-- [ ] Write unit tests for ViewModel
-- [ ] Write integration tests for lists feature
+- [X] Create `ListsViewModel` with `StateFlow<ListsUiState>`
+- [X] Create Lists screen (LazyColumn) showing all lists
+- [X] Implement FAB (+) to create a new list
+- [X] Implement long-press context menu: rename
+- [X] Implement long-press context menu: delete
+- [X] Set up Navigation Compose with lists screen as start destination
+- [X] Add placeholder navigation to items screen
+- [X] Write unit tests for ViewModel
+- [X] Write integration tests for lists feature
 
 ---
 

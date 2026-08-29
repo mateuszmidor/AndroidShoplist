@@ -169,6 +169,51 @@ class ItemsViewModelTest {
         assertEquals(listOf("A", "B", "C"), viewModel.uiState.value.items.map { it.name })
     }
 
+    @Test
+    fun importItems_withItems_appendsAllParsedInOrder() = runTest(dispatcher) {
+        val repository = FakeShoppingItemRepository()
+        repository.create(listId, "Bread")
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
+        collectState(viewModel)
+
+        viewModel.importItems("\u2022 Milk\n\u2022 Eggs\n\u2022 Mleko")
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("Bread", "Milk", "Eggs", "Mleko"),
+            viewModel.uiState.value.items.map { it.name },
+        )
+    }
+
+    @Test
+    fun importItems_withNoItems_makesNoDataLayerCall() = runTest(dispatcher) {
+        val repository = FakeShoppingItemRepository()
+        repository.create(listId, "Bread")
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
+        collectState(viewModel)
+
+        viewModel.importItems("   ")
+        viewModel.importItems("\u2022")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Bread"), viewModel.uiState.value.items.map { it.name })
+    }
+
+    @Test
+    fun importItems_targetsTheOpenListOnly() = runTest(dispatcher) {
+        val repository = FakeShoppingItemRepository()
+        val otherListId = UUID.randomUUID()
+        repository.create(listId, "Mine")
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
+        collectState(viewModel)
+
+        viewModel.importItems("\u2022 Milk\n\u2022 Eggs")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Mine", "Milk", "Eggs"), viewModel.uiState.value.items.map { it.name })
+        assertTrue(repository.observeItems(otherListId).first().isEmpty())
+    }
+
     private fun TestScope.collectState(viewModel: ItemsViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { }

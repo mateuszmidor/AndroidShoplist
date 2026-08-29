@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -16,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.util.UUID
 import org.mateuszmidor.shoplist.data.ShoppingItemEntity
+import org.mateuszmidor.shoplist.domain.ListonicImportParser
 import org.mateuszmidor.shoplist.ui.common.NameDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,9 +46,12 @@ fun ItemsScreen(
     onRenameItem: (UUID, String) -> Unit,
     onDeleteItem: (UUID) -> Unit,
     onToggleBought: (UUID) -> Unit,
+    onImportText: (String) -> Unit,
     onBack: () -> Unit,
 ) {
     var createDialogVisible by rememberSaveable { mutableStateOf(false) }
+    var importDialogVisible by rememberSaveable { mutableStateOf(false) }
+    var fabMenuVisible by rememberSaveable { mutableStateOf(false) }
     var menuTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
     var renameTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
 
@@ -59,8 +65,29 @@ fun ItemsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { createDialogVisible = true }) {
-                Text("+", style = MaterialTheme.typography.headlineMedium)
+            Box {
+                FloatingActionButton(onClick = { fabMenuVisible = true }) {
+                    Text("+", style = MaterialTheme.typography.headlineMedium)
+                }
+                DropdownMenu(
+                    expanded = fabMenuVisible,
+                    onDismissRequest = { fabMenuVisible = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Add item") },
+                        onClick = {
+                            fabMenuVisible = false
+                            createDialogVisible = true
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Import from Listonic") },
+                        onClick = {
+                            fabMenuVisible = false
+                            importDialogVisible = true
+                        },
+                    )
+                }
             }
         },
     ) { innerPadding ->
@@ -97,6 +124,16 @@ fun ItemsScreen(
         )
     }
 
+    if (importDialogVisible) {
+        ImportDialog(
+            onConfirm = { text ->
+                onImportText(text)
+                importDialogVisible = false
+            },
+            onDismiss = { importDialogVisible = false },
+        )
+    }
+
     uiState.items.firstOrNull { it.id == renameTargetId }?.let { target ->
         NameDialog(
             title = "Rename item",
@@ -109,6 +146,37 @@ fun ItemsScreen(
             onDismiss = { renameTargetId = null },
         )
     }
+}
+
+@Composable
+private fun ImportDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var text by rememberSaveable { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Import from Listonic") },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Pasted list") },
+                minLines = 4,
+                maxLines = 6,
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(text) },
+                enabled = ListonicImportParser.parse(text).isNotEmpty(),
+            ) { Text("Import") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }
 
 @Composable

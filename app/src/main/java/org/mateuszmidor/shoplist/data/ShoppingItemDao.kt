@@ -15,6 +15,9 @@ interface ShoppingItemDao {
     @Insert
     suspend fun insert(item: ShoppingItemEntity)
 
+    @Insert
+    suspend fun insertAll(items: List<ShoppingItemEntity>)
+
     @Query("UPDATE shopping_items SET bought = NOT bought WHERE id = :id")
     suspend fun toggleBought(id: UUID)
 

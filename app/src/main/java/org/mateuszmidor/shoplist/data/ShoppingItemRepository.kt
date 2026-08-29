@@ -9,6 +9,8 @@ interface ShoppingItemRepository {
 
     suspend fun create(listId: UUID, name: String): UUID
 
+    suspend fun createAll(listId: UUID, names: List<String>): List<UUID>
+
     suspend fun rename(id: UUID, name: String)
 
     suspend fun delete(id: UUID)

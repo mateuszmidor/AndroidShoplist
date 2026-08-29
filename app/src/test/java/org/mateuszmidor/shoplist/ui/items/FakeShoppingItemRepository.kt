@@ -31,6 +31,19 @@ class FakeShoppingItemRepository : ShoppingItemRepository {
         return id
     }
 
+    override suspend fun createAll(listId: UUID, names: List<String>): List<UUID> {
+        val added = names.map { name ->
+            ShoppingItemEntity(
+                id = UUID.randomUUID(),
+                listId = listId,
+                name = name,
+                createdAt = nextCreatedAt++,
+            )
+        }
+        items.value = order(items.value + added)
+        return added.map { it.id }
+    }
+
     override suspend fun rename(id: UUID, name: String) {
         items.value = order(items.value.map { if (it.id == id) it.copy(name = name) else it })
     }

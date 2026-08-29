@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -90,6 +91,41 @@ class RoomShoppingItemRepositoryTest {
         val ids = repository.observeItems(listId).first().map { it.id }
 
         assertEquals(listOf(first, second, third), ids)
+    }
+
+    @Test
+    fun createAll_persistsEveryItemInPastedOrderAfterExistingUnchecked() = runTest {
+        val listId = createList()
+        repository.create(listId, "Bread")
+        val ids = repository.createAll(listId, listOf("Milk", "Eggs", "Mleko"))
+
+        val items = repository.observeItems(listId).first()
+        assertEquals(
+            listOf("Bread", "Milk", "Eggs", "Mleko"),
+            items.map { it.name },
+        )
+        val imported = items.drop(1)
+        assertEquals(ids, imported.map { it.id })
+        assertEquals(listOf(false, false, false), imported.map { it.bought })
+        assertEquals(listOf(listId, listId, listId), imported.map { it.listId })
+        assertTrue(imported.map { it.createdAt }.distinct().size == imported.size)
+    }
+
+    @Test
+    fun createAll_failingBatch_persistsNothing() = runTest {
+        val listId = createList()
+        repository.create(listId, "Bread")
+        val missingListId = UUID.randomUUID()
+
+        try {
+            repository.createAll(missingListId, listOf("Milk", "Eggs"))
+            throw AssertionError("expected the batch insert to throw")
+        } catch (expected: Exception) {
+            // FK violation on the non-existent list id throws — expected.
+        }
+
+        val items = repository.observeItems(listId).first()
+        assertEquals(listOf("Bread"), items.map { it.name })
     }
 
     @Test

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.mateuszmidor.shoplist.data.ShoppingItemRepository
 import org.mateuszmidor.shoplist.data.ShoppingListRepository
+import org.mateuszmidor.shoplist.domain.ListonicImportParser
 
 class ItemsViewModel(
     private val repository: ShoppingItemRepository,
@@ -33,6 +34,12 @@ class ItemsViewModel(
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
         viewModelScope.launch { repository.create(listId, trimmed) }
+    }
+
+    fun importItems(text: String) {
+        val parsed = ListonicImportParser.parse(text)
+        if (parsed.isEmpty()) return
+        viewModelScope.launch { repository.createAll(listId, parsed) }
     }
 
     fun renameItem(id: UUID, name: String) {

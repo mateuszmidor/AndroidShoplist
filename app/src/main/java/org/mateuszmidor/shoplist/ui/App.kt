@@ -54,6 +54,7 @@ fun App(container: AppContainer) {
                 onRenameItem = viewModel::renameItem,
                 onDeleteItem = viewModel::deleteItem,
                 onToggleBought = viewModel::toggleItemBought,
+                onImportText = viewModel::importItems,
                 onBack = { navController.popBackStack() },
             )
         }

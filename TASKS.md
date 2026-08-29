@@ -106,23 +106,14 @@ Example import text (bullets are optional):
 • chleb ciemny/bułki
 ```
 
-- [ ] Add parser that turns pasted lines into item names (strip bullets, skip blanks, keep duplicates)
-- [ ] Add atomic data-layer operation to append multiple items to an existing list (single transaction)
-- [ ] Add FAB menu on Items screen: "Add item" and "Import from Listonic"
-- [ ] Add import dialog with multi-line paste field (no list name — target is the open list)
-- [ ] Block import when pasted text yields no items
-- [ ] Wire import action from Items screen to ItemsViewModel
-- [ ] Move new UI strings to strings.xml resources
-- [ ] Write unit tests for the parser
-- [ ] Write unit tests for the ViewModel import action (success + blocked cases)
-- [ ] Write integration tests for the atomic import in the data layer
+- [x] Add parser that turns pasted lines into item names (strip bullets, skip blanks, keep duplicates)
+- [x] Add atomic data-layer operation to append multiple items to an existing list (single transaction)
+- [x] Add FAB menu on Items screen: "Add item" and "Import from Listonic"
+- [x] Add import dialog with multi-line paste field (no list name — target is the open list)
+- [x] Block import when pasted text yields no items
+- [x] Wire import action from Items screen to ItemsViewModel
+- [x] Write unit tests for the parser
+- [x] Write unit tests for the ViewModel import action (success + blocked cases)
+- [x] Write integration tests for the atomic import in the data layer
 
 ---
-
-## Dependency Graph
-
-```
-01a → 01b → 02 → 03 → 04 → 05
-```
-
-Each change builds on the previous one. No change can be started until its predecessor is complete.

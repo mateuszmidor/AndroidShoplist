@@ -10,7 +10,7 @@ ifeq ($(shell test -x $(ADB) && echo yes),)
   ADB := adb
 endif
 
-.PHONY: help build assembleDebug test unitTest connectedTest devices install installDebug installRelease run clean
+.PHONY: help build assembleDebug test unitTest connectedTest devices install installDebug run clean
 
 # Show help — the default target.
 help:
@@ -24,7 +24,6 @@ help:
 	@echo "  make devices         List connected devices/emulators"
 	@echo "  make install         Build and install the debug APK on a connected device"
 	@echo "  make installDebug    Same as install"
-	@echo "  make installRelease  Build and install the release APK on a connected device"
 	@echo "  make run             Install debug APK and launch the app"
 	@echo "  make clean           Clean Gradle build outputs"
 
@@ -48,11 +47,6 @@ devices:
 install installDebug:
 	$(ADB) devices -l | grep -qE 'device (usb|product|emulator|wifi|tcpip|transport)' || { echo "No device connected"; exit 1; }
 	$(GRADLE) installDebug
-
-# Build and install the release APK on the first connected device.
-installRelease:
-	$(ADB) devices -l | grep -qE 'device (usb|product|emulator|wifi|tcpip|transport)' || { echo "No device connected"; exit 1; }
-	$(GRADLE) installRelease
 
 # Install the debug APK and launch the app's main activity.
 run: install

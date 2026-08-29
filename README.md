@@ -24,9 +24,9 @@ Notes:
 - Pacman's regular repos only have the command-line tools (`android-tools`); the IDE itself comes from the AUR.
 - If you later want the on-screen emulator, enable the `multilib` repo — the SDK's 32-bit tooling and emulator depend on `lib32-*` packages.
 
-## Running the appp in emulator
+## Running the app in android studio emulator
 
-Pixel 5a and 6a can be used
+Pixel 5a and 6a can be used.
 
 ## Deploying the app to the phone (Samsung Galaxy A52)
 
@@ -36,17 +36,35 @@ One-time phone setup:
 2. Settings → Developer options → enable **USB debugging**.
 3. Connect the phone with a USB cable. In the phone's USB notification choose **"File transfer" (MTP)** and accept the "Allow USB debugging?" RSA fingerprint prompt on the screen.
 
-From the terminal (requires the Gradle wrapper, present after scaffolding):
+### Deploy from the terminal (requires the Gradle wrapper, present after scaffolding)
 
 ```sh
-adb devices            # the A52 must show as "device", not "unauthorized" or empty
-./gradlew installDebug # builds the debug APK, installs it and it's ready to launch
-adb shell am start -n <applicationId>/.MainActivity   # or just launch it from the launcher
+make install   # builds and installs the debug APK; run 'make run' to install and launch
 ```
 
-Alternatively, from Android Studio: open the project, pick the A52 from the device dropdown at the top, and click **Run (▶)**. Gradle builds, installs, and launches the app for you.
+### Deploy from Android Studio
 
-Troubleshooting:
+From Android Studio: open the project, pick the A52 from the device dropdown at the top, and click **Run (▶)**. Gradle builds, installs, and launches the app for you.
+
+## Handy commands via Makefile
+
+The root `Makefile` wraps the most common Gradle/adb tasks. Run `make help` for a full list.
+
+```sh
+make help             # list all targets
+make build            # assemble the debug APK (alias: assembleDebug)
+make test             # run local (JVM) unit tests (alias: unitTest)
+make connectedTest    # run instrumented tests on a connected device/emulator
+make devices          # list connected phones/emulators
+make install          # build + install the debug APK on a connected device (alias: installDebug)
+make installRelease   # build + install the release APK
+make run              # install debug APK and launch the app
+make clean            # clean Gradle build outputs
+```
+
+The `install*`/`run` targets error out with "No device connected" when no authorized device is detected, so run `make devices` first if in doubt.
+
+## Troubleshooting
 
 - `adb devices` reports `unauthorized` → unlock the phone and tap "Allow" on the RSA prompt.
 - The phone does not appear at all → replug the cable; run `adb kill-server && adb start-server`; make sure the USB mode is "File transfer" (Samsung won't expose adb in "Charging only"); verify `groups` includes `adbusers` (re-login after adding the group).

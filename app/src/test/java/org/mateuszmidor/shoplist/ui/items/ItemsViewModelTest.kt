@@ -24,10 +24,12 @@ class ItemsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val listId: UUID = UUID.randomUUID()
+    private val listRepository = FakeListsRepository()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        listRepository.seed(listId to "Groceries")
     }
 
     @After
@@ -40,7 +42,7 @@ class ItemsViewModelTest {
         val repository = FakeShoppingItemRepository()
         repository.create(listId, "One")
         repository.create(listId, "Two")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         advanceUntilIdle()
@@ -49,10 +51,22 @@ class ItemsViewModelTest {
     }
 
     @Test
+    fun observe_surfacesTheListNameInUiState() = runTest(dispatcher) {
+        val repository = FakeShoppingItemRepository()
+        repository.create(listId, "One")
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
+        collectState(viewModel)
+
+        advanceUntilIdle()
+
+        assertEquals("Groceries", viewModel.uiState.value.listName)
+    }
+
+    @Test
     fun addItem_withTrimmedName_appendsNewItemAsLast() = runTest(dispatcher) {
         val repository = FakeShoppingItemRepository()
         repository.create(listId, "One")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         viewModel.addItem("  Milk  ")
@@ -67,7 +81,7 @@ class ItemsViewModelTest {
         val otherListId = UUID.randomUUID()
         repository.create(listId, "Mine")
         repository.create(otherListId, "Theirs")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         advanceUntilIdle()
@@ -79,7 +93,7 @@ class ItemsViewModelTest {
     fun addItem_withBlankName_emitsNoChange() = runTest(dispatcher) {
         val repository = FakeShoppingItemRepository()
         repository.create(listId, "One")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         viewModel.addItem("   ")
@@ -93,7 +107,7 @@ class ItemsViewModelTest {
         val repository = FakeShoppingItemRepository()
         val id = repository.create(listId, "Milk")
         val created = repository.observeItems(listId).first().single()
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         viewModel.renameItem(id, "Soy milk")
@@ -110,7 +124,7 @@ class ItemsViewModelTest {
         val repository = FakeShoppingItemRepository()
         val toDelete = repository.create(listId, "Milk")
         val keep = repository.create(listId, "Bread")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         viewModel.deleteItem(toDelete)
@@ -123,7 +137,7 @@ class ItemsViewModelTest {
     fun toggleItemBought_flipsBoughtFlagInState() = runTest(dispatcher) {
         val repository = FakeShoppingItemRepository()
         val id = repository.create(listId, "Milk")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         viewModel.toggleItemBought(id)
@@ -141,7 +155,7 @@ class ItemsViewModelTest {
         val a = repository.create(listId, "A")
         val b = repository.create(listId, "B")
         val c = repository.create(listId, "C")
-        val viewModel = ItemsViewModel(repository, listId)
+        val viewModel = ItemsViewModel(repository, listRepository, listId)
         collectState(viewModel)
 
         viewModel.toggleItemBought(b)

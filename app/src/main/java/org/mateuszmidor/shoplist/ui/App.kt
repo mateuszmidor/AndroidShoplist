@@ -46,7 +46,7 @@ fun App(container: AppContainer) {
         composable<Items>(typeMap = mapOf(typeOf<ListId>() to ListIdNavType)) { backStackEntry ->
             val route = backStackEntry.toRoute<Items>()
             val viewModel: ItemsViewModel =
-                viewModel { ItemsViewModel(container.shoppingItemRepository, route.listId.value) }
+                viewModel { ItemsViewModel(container.shoppingItemRepository, container.shoppingListRepository, route.listId.value) }
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             ItemsScreen(
                 uiState = uiState,

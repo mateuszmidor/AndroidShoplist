@@ -36,6 +36,25 @@ Rule: The items screen shows the selected list's items in two sections, unchecke
 - **THEN** the new item appears as the last item of the unchecked section,
   before any checked items
 
+### Requirement: Items screen SHALL display the opened list's name in the top bar
+
+The items screen SHALL show the name of the list it was opened for in its top
+app bar, rather than a generic label.
+
+Feature: items-screen
+Rule: The top bar shows the opened list's name
+
+#### Scenario: Top bar shows the list name
+
+- **GIVEN** the items screen is opened for a list named "Groceries"
+- **THEN** the top bar displays "Groceries"
+
+#### Scenario: Top bar reflects a renamed list
+
+- **GIVEN** the items screen is open for a list
+- **WHEN** the list is renamed, for example to "Weekly groceries"
+- **THEN** the top bar updates to display "Weekly groceries"
+
 ### Requirement: Users SHALL be able to mark items as bought by tapping them
 
 Tapping an item's row or its checkbox SHALL toggle the item's bought state.

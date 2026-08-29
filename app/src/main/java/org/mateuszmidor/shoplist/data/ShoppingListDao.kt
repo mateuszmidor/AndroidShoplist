@@ -9,8 +9,21 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ShoppingListDao {
 
-    @Query("SELECT * FROM shopping_lists ORDER BY created_at ASC, id ASC")
-    fun observeAll(): Flow<List<ShoppingListEntity>>
+    @Query(
+        """
+        SELECT l.id AS id,
+               l.name AS name,
+               l.created_at AS createdAt,
+               (SELECT COUNT(*) FROM shopping_items i WHERE i.list_id = l.id) AS totalCount,
+               (SELECT COUNT(*) FROM shopping_items i WHERE i.list_id = l.id AND i.bought = 1) AS boughtCount
+        FROM shopping_lists l
+        ORDER BY l.created_at ASC, l.id ASC
+        """,
+    )
+    fun observeListSummaries(): Flow<List<ListSummary>>
+
+    @Query("SELECT * FROM shopping_lists WHERE id = :id")
+    fun observeById(id: UUID): Flow<ShoppingListEntity?>
 
     @Insert
     suspend fun insert(list: ShoppingListEntity)

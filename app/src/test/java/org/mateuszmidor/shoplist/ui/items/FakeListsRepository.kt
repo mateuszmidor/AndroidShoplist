@@ -1,4 +1,4 @@
-package org.mateuszmidor.shoplist.ui.lists
+package org.mateuszmidor.shoplist.ui.items
 
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
@@ -10,29 +10,25 @@ import org.mateuszmidor.shoplist.data.ShoppingListEntity
 import org.mateuszmidor.shoplist.data.ShoppingListRepository
 
 /**
- * In-memory [ShoppingListRepository] for unit tests. Emission order mirrors
- * append order (the Room DAO orders by creation time). Item counts are seeded
- * per list so summaries are deterministic.
+ * Minimal in-memory [ShoppingListRepository] for the items test package. Only
+ * the list-observation operations used by [ItemsViewModel] are surfaced with
+ * deterministic values; the rest mirror the single-write-path contract.
  */
-class FakeShoppingListRepository : ShoppingListRepository {
+class FakeListsRepository : ShoppingListRepository {
 
     private val lists = MutableStateFlow<List<ShoppingListEntity>>(emptyList())
-
-    /** listId -> (total items, bought items); absent keys mean zero counts. */
-    private val summaries = MutableStateFlow<Map<UUID, Pair<Int, Int>>>(emptyMap())
 
     private var nextCreatedAt = 0L
 
     override fun observeLists(): Flow<List<ListSummary>> =
         lists.map { entities ->
             entities.map { list ->
-                val (total, bought) = summaries.value[list.id] ?: (0 to 0)
                 ListSummary(
                     id = list.id,
                     name = list.name,
                     createdAt = list.createdAt,
-                    totalCount = total,
-                    boughtCount = bought,
+                    totalCount = 0,
+                    boughtCount = 0,
                 )
             }
         }
@@ -52,15 +48,11 @@ class FakeShoppingListRepository : ShoppingListRepository {
 
     override suspend fun delete(id: UUID) {
         lists.value = lists.value.filterNot { it.id == id }
-        summaries.value = summaries.value - id
     }
 
-    suspend fun seed(vararg names: String) {
-        names.forEach { create(it) }
-    }
-
-    /** Seed a deterministic per-list summary: [total] items, of which [bought] are bought. */
-    suspend fun seedSummary(listId: UUID, total: Int, bought: Int) {
-        summaries.value = summaries.value + (listId to (total to bought))
+    fun seed(vararg entries: Pair<UUID, String>) {
+        entries.forEach { (id, name) ->
+            lists.value = lists.value + ShoppingListEntity(id = id, name = name, createdAt = nextCreatedAt++)
+        }
     }
 }

@@ -78,6 +78,30 @@ class RoomShoppingListRepositoryTest {
     }
 
     @Test
+    fun observeLists_returnsSummaries() = runTest {
+        val id = repository.create("Groceries")
+
+        val summary = repository.observeLists().first().single()
+
+        assertEquals(id, summary.id)
+        assertEquals("Groceries", summary.name)
+        assertEquals(0, summary.totalCount)
+        assertEquals(0, summary.boughtCount)
+    }
+
+    @Test
+    fun observeList_returnsTheListById_orNothingForUnknown() = runTest {
+        val id = repository.create("Groceries")
+
+        val known = repository.observeList(id).first()
+        assertEquals(id, known?.id)
+        assertEquals("Groceries", known?.name)
+
+        val unknown = repository.observeList(UUID.randomUUID()).first()
+        assertEquals(null, unknown)
+    }
+
+    @Test
     fun createdList_survivesDatabaseReopen() = runTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val dbFile = File(context.cacheDir, "repository-reopen-test.db")

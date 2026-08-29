@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -17,6 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mateuszmidor.shoplist.data.RoomShoppingListRepository
 import org.mateuszmidor.shoplist.data.ShoppingDatabase
+import org.mateuszmidor.shoplist.data.ShoppingItemEntity
 
 /**
  * End-to-end wiring of [ListsViewModel] over the real Room-backed
@@ -73,17 +75,47 @@ class ListsViewModelIntegrationTest {
 
         viewModel.renameList(id, "Weekly")
         uiStateUntil { state -> state.lists.first { it.id == id }.name == "Weekly" }
-        database.shoppingListDao().observeAll()
+        database.shoppingListDao().observeListSummaries()
             .first { lists -> lists.first { it.id == id }.name == "Weekly" }
 
         viewModel.deleteList(id)
         uiStateUntil { state -> state.lists.map { it.id }.toSet() == ids - id }
-        val dbLists = database.shoppingListDao().observeAll().first { lists -> lists.size == 1 }
+        val dbLists = database.shoppingListDao().observeListSummaries().first { lists -> lists.size == 1 }
         val remaining = dbLists.single()
 
         assertEquals((ids - id).single(), remaining.id)
         assertEquals("Books", remaining.name)
         assertEquals(listOf("Books"), viewModel.uiState.value.lists.map { it.name })
+    }
+
+    @Test
+    fun listSummaries_roundTripOverRoom_reflectItemMutations() = runBlocking {
+        viewModel.createList("Groceries")
+        val id = uiStateUntil { it.lists.isNotEmpty() }.lists.single().id
+        val itemDao = database.shoppingItemDao()
+
+        itemDao.insert(ShoppingItemEntity(id = UUID.randomUUID(), listId = id, name = "Milk", createdAt = 100))
+        itemDao.insert(ShoppingItemEntity(id = UUID.randomUUID(), listId = id, name = "Bread", createdAt = 200))
+        itemDao.insert(ShoppingItemEntity(id = UUID.randomUUID(), listId = id, name = "Eggs", createdAt = 300))
+
+        val seeded = uiStateUntil { state -> state.lists.single().totalCount == 3 }
+        assertEquals(3, seeded.lists.single().totalCount)
+        assertEquals(0, seeded.lists.single().boughtCount)
+
+        val breadId = database.shoppingItemDao().observeByList(id).first { i -> i.size == 3 }
+            .first { it.name == "Bread" }.id
+        itemDao.toggleBought(breadId)
+
+        val toggled = uiStateUntil { state -> state.lists.single().boughtCount == 1 }
+        assertEquals(3, toggled.lists.single().totalCount)
+        assertEquals(1, toggled.lists.single().boughtCount)
+
+        val milkId = database.shoppingItemDao().observeByList(id).first().first { it.name == "Milk" }.id
+        itemDao.deleteById(milkId)
+
+        val deleted = uiStateUntil { state -> state.lists.single().totalCount == 2 }
+        assertEquals(2, deleted.lists.single().totalCount)
+        assertEquals(1, deleted.lists.single().boughtCount)
     }
 
     private suspend fun uiStateUntil(predicate: (ListsUiState) -> Boolean): ListsUiState =

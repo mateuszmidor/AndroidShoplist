@@ -2,6 +2,7 @@ package org.mateuszmidor.shoplist.ui.lists
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.util.UUID
-import org.mateuszmidor.shoplist.data.ShoppingListEntity
+import org.mateuszmidor.shoplist.data.ListSummary
+import org.mateuszmidor.shoplist.ui.common.NameDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,7 @@ fun ListsScreen(
     var createDialogVisible by rememberSaveable { mutableStateOf(false) }
     var menuTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
     var renameTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
+    var deleteTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("ShopList") }) },
@@ -67,7 +69,7 @@ fun ListsScreen(
                     onOpenList = onOpenList,
                     onMenuChange = { menuTargetId = it },
                     onRename = { id -> renameTargetId = id; menuTargetId = null },
-                    onDelete = { id -> onDeleteList(id); menuTargetId = null },
+                    onDelete = { id -> deleteTargetId = id; menuTargetId = null },
                 )
             }
         }
@@ -98,11 +100,32 @@ fun ListsScreen(
             onDismiss = { renameTargetId = null },
         )
     }
+
+    uiState.lists.firstOrNull { it.id == deleteTargetId }?.let { target ->
+        AlertDialog(
+            onDismissRequest = { deleteTargetId = null },
+            title = { Text("Delete list") },
+            text = {
+                Text("Delete list \"${target.name}\" and its ${target.totalCount} items?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteList(target.id)
+                        deleteTargetId = null
+                    },
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTargetId = null }) { Text("Cancel") }
+            },
+        )
+    }
 }
 
 @Composable
 private fun ListContent(
-    lists: List<ShoppingListEntity>,
+    lists: List<ListSummary>,
     menuTargetId: UUID?,
     onOpenList: (UUID) -> Unit,
     onMenuChange: (UUID?) -> Unit,
@@ -127,7 +150,7 @@ private fun ListContent(
 
 @Composable
 private fun ListRow(
-    list: ShoppingListEntity,
+    list: ListSummary,
     menuExpanded: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
@@ -136,16 +159,24 @@ private fun ListRow(
     onDelete: () -> Unit,
 ) {
     Box {
-        Text(
-            text = list.name,
-            style = MaterialTheme.typography.bodyLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-        )
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            Text(
+                text = list.name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = "${list.totalCount} items · ${list.boughtCount} bought",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = onDismissMenu,
@@ -167,37 +198,4 @@ private fun ListEmptyHint() {
             style = MaterialTheme.typography.bodyLarge,
         )
     }
-}
-
-@Composable
-private fun NameDialog(
-    title: String,
-    initialName: String,
-    confirmLabel: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                singleLine = true,
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(name) },
-                enabled = name.trim().isNotEmpty(),
-            ) { Text(confirmLabel) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        },
-    )
 }

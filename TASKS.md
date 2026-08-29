@@ -85,10 +85,10 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Nice-to-haves per feature prioritization.
 
-- [ ] Add per-list summary on lists screen: total item count + bought count
-- [ ] Configure Android auto-backup manifest
-- [ ] Move all UI strings to `strings.xml` resources
-- [ ] Final pass on UI consistency between lists and items screens
+- [X] Ask user to confirm when deleting a list, deleting an item needs no confirmation
+- [X] Add per-list summary on lists screen: total item count + bought count
+- [X] Configure Android auto-backup manifest
+- [X] Final pass on UI consistency between lists and items screens
 
 ---
 

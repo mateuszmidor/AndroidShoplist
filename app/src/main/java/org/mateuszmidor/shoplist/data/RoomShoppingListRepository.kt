@@ -7,7 +7,9 @@ class RoomShoppingListRepository(
     private val dao: ShoppingListDao,
 ) : ShoppingListRepository {
 
-    override fun observeLists(): Flow<List<ShoppingListEntity>> = dao.observeAll()
+    override fun observeLists(): Flow<List<ListSummary>> = dao.observeListSummaries()
+
+    override fun observeList(id: UUID): Flow<ShoppingListEntity?> = dao.observeById(id)
 
     override suspend fun create(name: String): UUID {
         val id = UUID.randomUUID()

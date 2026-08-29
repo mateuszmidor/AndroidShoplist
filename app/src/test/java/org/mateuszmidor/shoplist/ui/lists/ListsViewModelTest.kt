@@ -100,6 +100,25 @@ class ListsViewModelTest {
         assertEquals(listOf(keep), viewModel.uiState.value.lists.map { it.id })
     }
 
+    @Test
+    fun observeLists_exposesSummariesFromRepository() = runTest(dispatcher) {
+        val repository = FakeShoppingListRepository()
+        val groceries = repository.create("Groceries")
+        val books = repository.create("Books")
+        repository.seedSummary(groceries, total = 3, bought = 1)
+        repository.seedSummary(books, total = 0, bought = 0)
+        val viewModel = ListsViewModel(repository)
+        collectState(viewModel)
+
+        advanceUntilIdle()
+
+        val byId = viewModel.uiState.value.lists.associateBy { it.id }
+        assertEquals(3, byId.getValue(groceries).totalCount)
+        assertEquals(1, byId.getValue(groceries).boughtCount)
+        assertEquals(0, byId.getValue(books).totalCount)
+        assertEquals(0, byId.getValue(books).boughtCount)
+    }
+
     private fun TestScope.collectState(viewModel: ListsViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { }

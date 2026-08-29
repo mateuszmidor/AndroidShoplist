@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.mateuszmidor.shoplist.data.RoomShoppingItemRepository
 import org.mateuszmidor.shoplist.data.RoomShoppingListRepository
 import org.mateuszmidor.shoplist.data.ShoppingDatabase
+import org.mateuszmidor.shoplist.data.ShoppingItemEntity
 
 /**
  * End-to-end wiring of [ItemsViewModel] over the real Room-backed
@@ -49,7 +50,7 @@ class ItemsViewModelIntegrationTest {
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                    ItemsViewModel(repository, listId) as T
+                    ItemsViewModel(repository, listRepository, listId) as T
             },
         )[ItemsViewModel::class.java]
     }
@@ -95,14 +96,16 @@ class ItemsViewModelIntegrationTest {
 
     @Test
     fun toggleBoughtRoundTrip_reordersUiStateAndDomain_reflectsBothTransitionsInDatabase() = runBlocking {
-        viewModel.addItem("Milk")
-        viewModel.addItem("Bread")
-        viewModel.addItem("Eggs")
+        val itemDao = database.shoppingItemDao()
+        val milk = ShoppingItemEntity(id = UUID.randomUUID(), listId = listId, name = "Milk", createdAt = 100)
+        val bread = ShoppingItemEntity(id = UUID.randomUUID(), listId = listId, name = "Bread", createdAt = 200)
+        val eggs = ShoppingItemEntity(id = UUID.randomUUID(), listId = listId, name = "Eggs", createdAt = 300)
+        itemDao.insert(milk)
+        itemDao.insert(bread)
+        itemDao.insert(eggs)
+
         val items = uiStateUntil { it.items.size == 3 }.items
-        val milk = items.first { it.name == "Milk" }
-        val bread = items.first { it.name == "Bread" }
-        val eggs = items.first { it.name == "Eggs" }
-        assertEquals(listOf("Milk", "Bread", "Eggs"), viewModel.uiState.value.items.map { it.name })
+        assertEquals(listOf("Milk", "Bread", "Eggs"), items.map { it.name })
 
         viewModel.toggleItemBought(bread.id)
         uiStateUntil { state -> state.items.map { it.name } == listOf("Milk", "Eggs", "Bread") }
@@ -117,6 +120,16 @@ class ItemsViewModelIntegrationTest {
             .first { items -> !items.first { it.id == bread.id }.bought }
         assertFalse(dbUnchecked.first { it.id == bread.id }.bought)
         assertEquals(listOf(milk.id, bread.id, eggs.id), dbUnchecked.map { it.id })
+    }
+
+    @Test
+    fun uiState_surfacesItemsAndListNameFromRealRoom() = runBlocking {
+        viewModel.addItem("  Milk  ")
+
+        val state = uiStateUntil { it.items.isNotEmpty() && it.listName != null }
+
+        assertEquals("Milk", state.items.single().name)
+        assertEquals("Groceries", state.listName)
     }
 
     private suspend fun uiStateUntil(predicate: (ItemsUiState) -> Boolean): ItemsUiState =

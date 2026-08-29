@@ -1,7 +1,7 @@
 package org.mateuszmidor.shoplist.ui.lists
 
-import org.mateuszmidor.shoplist.data.ShoppingListEntity
+import org.mateuszmidor.shoplist.data.ListSummary
 
 data class ListsUiState(
-    val lists: List<ShoppingListEntity> = emptyList(),
+    val lists: List<ListSummary> = emptyList(),
 )

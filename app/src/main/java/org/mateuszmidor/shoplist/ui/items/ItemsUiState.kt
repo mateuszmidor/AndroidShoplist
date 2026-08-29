@@ -4,4 +4,5 @@ import org.mateuszmidor.shoplist.data.ShoppingItemEntity
 
 data class ItemsUiState(
     val items: List<ShoppingItemEntity> = emptyList(),
+    val listName: String? = null,
 )

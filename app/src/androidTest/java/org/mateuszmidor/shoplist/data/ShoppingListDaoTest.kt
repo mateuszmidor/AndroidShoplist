@@ -19,12 +19,14 @@ class ShoppingListDaoTest {
 
     private lateinit var database: ShoppingDatabase
     private lateinit var dao: ShoppingListDao
+    private lateinit var itemDao: ShoppingItemDao
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder<ShoppingDatabase>(context).build()
         dao = database.shoppingListDao()
+        itemDao = database.shoppingItemDao()
     }
 
     @After
@@ -38,7 +40,7 @@ class ShoppingListDaoTest {
         dao.insert(entity("Two", createdAt = 200))
         dao.insert(entity("Three", createdAt = 300))
 
-        val lists = dao.observeAll().first()
+        val lists = dao.observeListSummaries().first()
 
         assertEquals(listOf("One", "Two", "Three"), lists.map { it.name })
     }
@@ -50,7 +52,7 @@ class ShoppingListDaoTest {
 
         dao.renameById(entity.id, "Weekly groceries")
 
-        val list = dao.observeAll().first().single()
+        val list = dao.observeListSummaries().first().single()
         assertEquals("Weekly groceries", list.name)
         assertEquals(entity.id, list.id)
         assertEquals(entity.createdAt, list.createdAt)
@@ -63,7 +65,7 @@ class ShoppingListDaoTest {
 
         dao.deleteById(entity.id)
 
-        assertTrue(dao.observeAll().first().isEmpty())
+        assertTrue(dao.observeListSummaries().first().isEmpty())
     }
 
     @Test
@@ -73,11 +75,75 @@ class ShoppingListDaoTest {
 
         dao.deleteById(UUID.randomUUID())
 
-        val list = dao.observeAll().first().single()
+        val list = dao.observeListSummaries().first().single()
         assertEquals(entity.id, list.id)
         assertEquals("Groceries", list.name)
     }
 
+    @Test
+    fun summaries_carryTotalAndBoughtCounts() = runTest {
+        val list = entity("Groceries", createdAt = 100)
+        dao.insert(list)
+        val a = item(list.id, "A", createdAt = 100)
+        val b = item(list.id, "B", createdAt = 200)
+        val c = item(list.id, "C", createdAt = 300)
+        itemDao.insert(a)
+        itemDao.insert(b)
+        itemDao.insert(c)
+
+        itemDao.toggleBought(b.id)
+
+        val summary = dao.observeListSummaries().first().single()
+        assertEquals(3, summary.totalCount)
+        assertEquals(1, summary.boughtCount)
+    }
+
+    @Test
+    fun summaries_zeroCountsForEmptyLists() = runTest {
+        val list = entity("Groceries", createdAt = 100)
+        dao.insert(list)
+
+        val summary = dao.observeListSummaries().first().single()
+        assertEquals(0, summary.totalCount)
+        assertEquals(0, summary.boughtCount)
+    }
+
+    @Test
+    fun summaries_updateOnItemInsertToggleAndDelete() = runTest {
+        val list = entity("Groceries", createdAt = 100)
+        dao.insert(list)
+        val a = item(list.id, "A", createdAt = 100)
+        val b = item(list.id, "B", createdAt = 200)
+        itemDao.insert(a)
+        itemDao.insert(b)
+
+        assertEquals(2, dao.observeListSummaries().first().single().totalCount)
+
+        itemDao.toggleBought(a.id)
+        assertEquals(1, dao.observeListSummaries().first().single().boughtCount)
+
+        itemDao.deleteById(a.id)
+        val summary = dao.observeListSummaries().first().single()
+        assertEquals(1, summary.totalCount)
+        assertEquals(0, summary.boughtCount)
+    }
+
+    @Test
+    fun observeById_emitsListForKnownId_andNothingForUnknown() = runTest {
+        val list = entity("Groceries", createdAt = 100)
+        dao.insert(list)
+
+        val known = dao.observeById(list.id).first()
+        assertEquals(list.id, known?.id)
+        assertEquals("Groceries", known?.name)
+
+        val unknown = dao.observeById(UUID.randomUUID()).first()
+        assertTrue(unknown == null)
+    }
+
     private fun entity(name: String, createdAt: Long) =
         ShoppingListEntity(id = UUID.randomUUID(), name = name, createdAt = createdAt)
+
+    private fun item(listId: UUID, name: String, createdAt: Long) =
+        ShoppingItemEntity(id = UUID.randomUUID(), listId = listId, name = name, createdAt = createdAt)
 }

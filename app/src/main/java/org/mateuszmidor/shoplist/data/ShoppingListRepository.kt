@@ -5,7 +5,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface ShoppingListRepository {
 
-    fun observeLists(): Flow<List<ShoppingListEntity>>
+    fun observeLists(): Flow<List<ListSummary>>
+
+    fun observeList(id: UUID): Flow<ShoppingListEntity?>
 
     suspend fun create(name: String): UUID
 

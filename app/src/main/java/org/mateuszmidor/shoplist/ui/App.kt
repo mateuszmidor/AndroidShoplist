@@ -14,13 +14,14 @@ import org.mateuszmidor.shoplist.navigation.Items
 import org.mateuszmidor.shoplist.navigation.Lists
 import org.mateuszmidor.shoplist.navigation.ListId
 import org.mateuszmidor.shoplist.navigation.ListIdNavType
-import org.mateuszmidor.shoplist.ui.items.PlaceholderItemsScreen
+import org.mateuszmidor.shoplist.ui.items.ItemsScreen
+import org.mateuszmidor.shoplist.ui.items.ItemsViewModel
 import org.mateuszmidor.shoplist.ui.lists.ListsScreen
 import org.mateuszmidor.shoplist.ui.lists.ListsViewModel
 
 /**
  * Root composable of the app. Hosts the navigation graph: the lists screen as
- * the start destination and the items route (placeholder until change 03).
+ * the start destination and the items screen (reached via a list UUID).
  */
 @Composable
 fun App(container: AppContainer) {
@@ -44,8 +45,14 @@ fun App(container: AppContainer) {
         }
         composable<Items>(typeMap = mapOf(typeOf<ListId>() to ListIdNavType)) { backStackEntry ->
             val route = backStackEntry.toRoute<Items>()
-            PlaceholderItemsScreen(
-                listId = route.listId.value,
+            val viewModel: ItemsViewModel =
+                viewModel { ItemsViewModel(container.shoppingItemRepository, route.listId.value) }
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            ItemsScreen(
+                uiState = uiState,
+                onAddItem = viewModel::addItem,
+                onRenameItem = viewModel::renameItem,
+                onDeleteItem = viewModel::deleteItem,
                 onBack = { navController.popBackStack() },
             )
         }

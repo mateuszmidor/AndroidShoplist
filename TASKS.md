@@ -54,18 +54,18 @@ Each change is self-contained and delivers something testable.
 
 **Goal**: Second screen, mirroring the lists pattern. Completes the two-screen navigation model.
 
-- [ ] Create `ShoppingItemEntity` (`id: UUID`, `listId: UUID`, `name`, `bought`, `createdAt`)
-- [ ] Create `ShoppingItemDao` with CRUD + Flow queries by list
-- [ ] Create `ShoppingItemRepository` interface + Room implementation
-- [ ] Wire item repository into `AppContainer`
-- [ ] Create `ItemsViewModel` with per-list state
-- [ ] Create Items screen (LazyColumn) showing items in a list
-- [ ] Implement FAB (+) to add item
-- [ ] Implement long-press context menu: rename/delete
-- [ ] Wire navigation: lists -> items (with list UUID argument)
-- [ ] Implement back navigation from items -> lists
-- [ ] Write unit tests for ViewModel
-- [ ] Write integration tests for item data layer
+- [X] Create `ShoppingItemEntity` (`id: UUID`, `listId: UUID`, `name`, `bought`, `createdAt`)
+- [X] Create `ShoppingItemDao` with CRUD + Flow queries by list
+- [X] Create `ShoppingItemRepository` interface + Room implementation
+- [X] Wire item repository into `AppContainer`
+- [X] Create `ItemsViewModel` with per-list state
+- [X] Create Items screen (LazyColumn) showing items in a list
+- [X] Implement FAB (+) to add item
+- [X] Implement long-press context menu: rename/delete
+- [X] Wire navigation: lists -> items (with list UUID argument)
+- [X] Implement back navigation from items -> lists
+- [X] Write unit tests for ViewModel
+- [X] Write integration tests for item data layer
 
 ---
 

@@ -2,8 +2,10 @@ package org.mateuszmidor.shoplist.di
 
 import android.content.Context
 import androidx.room3.Room
+import org.mateuszmidor.shoplist.data.RoomShoppingItemRepository
 import org.mateuszmidor.shoplist.data.RoomShoppingListRepository
 import org.mateuszmidor.shoplist.data.ShoppingDatabase
+import org.mateuszmidor.shoplist.data.ShoppingItemRepository
 import org.mateuszmidor.shoplist.data.ShoppingListRepository
 
 /**
@@ -20,4 +22,7 @@ class AppContainer(context: Context) {
 
     val shoppingListRepository: ShoppingListRepository =
         RoomShoppingListRepository(database.shoppingListDao())
+
+    val shoppingItemRepository: ShoppingItemRepository =
+        RoomShoppingItemRepository(database.shoppingItemDao())
 }

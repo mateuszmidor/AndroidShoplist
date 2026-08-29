@@ -92,6 +92,32 @@ Each change is self-contained and delivers something testable.
 
 ---
 
+## Change 06: Import list from Listonic app
+
+**Goal**: Let the user create a new list by pasting plain-text items exported from
+Listonic. Each pasted line becomes one item (slashes preserved, leading bullet stripped,
+blanks skipped, duplicates kept); the list and its items are created atomically (all-or-nothing).
+
+Example import text (bullets are optional):
+```
+• mleko
+• jajka
+• chleb ciemny/bułki
+```
+
+- [ ] Add parser that turns pasted lines into item names (strip bullets, skip blanks, keep duplicates)
+- [ ] Add atomic data-layer operation to create a list together with all its items
+- [ ] Add FAB menu on Lists screen: "New list" and "Import from Listonic"
+- [ ] Add import dialog with list name field + multi-line paste field
+- [ ] Block import when name is blank or pasted text yields no items
+- [ ] Wire import action from Lists screen to ViewModel
+- [ ] Move new UI strings to strings.xml resources
+- [ ] Write unit tests for the parser
+- [ ] Write unit tests for the ViewModel import action (success + blocked cases)
+- [ ] Write integration tests for the atomic import in the data layer
+
+---
+
 ## Dependency Graph
 
 ```

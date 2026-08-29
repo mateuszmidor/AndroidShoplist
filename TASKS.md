@@ -92,11 +92,12 @@ Each change is self-contained and delivers something testable.
 
 ---
 
-## Change 06: Import list from Listonic app
+## Change 06: Import items from Listonic app
 
-**Goal**: Let the user create a new list by pasting plain-text items exported from
-Listonic. Each pasted line becomes one item (slashes preserved, leading bullet stripped,
-blanks skipped, duplicates kept); the list and its items are created atomically (all-or-nothing).
+**Goal**: Let the user append items to an existing list by pasting plain-text items
+exported from Listonic. From the Items screen the user opens an import dialog and pastes
+text; each pasted line becomes one item (slashes preserved, leading bullet stripped,
+blanks skipped, duplicates kept). All parsed items are added atomically (all-or-nothing).
 
 Example import text (bullets are optional):
 ```
@@ -106,11 +107,11 @@ Example import text (bullets are optional):
 ```
 
 - [ ] Add parser that turns pasted lines into item names (strip bullets, skip blanks, keep duplicates)
-- [ ] Add atomic data-layer operation to create a list together with all its items
-- [ ] Add FAB menu on Lists screen: "New list" and "Import from Listonic"
-- [ ] Add import dialog with list name field + multi-line paste field
-- [ ] Block import when name is blank or pasted text yields no items
-- [ ] Wire import action from Lists screen to ViewModel
+- [ ] Add atomic data-layer operation to append multiple items to an existing list (single transaction)
+- [ ] Add FAB menu on Items screen: "Add item" and "Import from Listonic"
+- [ ] Add import dialog with multi-line paste field (no list name — target is the open list)
+- [ ] Block import when pasted text yields no items
+- [ ] Wire import action from Items screen to ItemsViewModel
 - [ ] Move new UI strings to strings.xml resources
 - [ ] Write unit tests for the parser
 - [ ] Write unit tests for the ViewModel import action (success + blocked cases)

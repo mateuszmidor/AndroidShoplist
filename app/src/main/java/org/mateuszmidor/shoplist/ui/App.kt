@@ -2,6 +2,7 @@ package org.mateuszmidor.shoplist.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -16,6 +17,7 @@ import org.mateuszmidor.shoplist.navigation.ListId
 import org.mateuszmidor.shoplist.navigation.ListIdNavType
 import org.mateuszmidor.shoplist.ui.items.ItemsScreen
 import org.mateuszmidor.shoplist.ui.items.ItemsViewModel
+import org.mateuszmidor.shoplist.ui.lists.AndroidListClipboard
 import org.mateuszmidor.shoplist.ui.lists.ListsScreen
 import org.mateuszmidor.shoplist.ui.lists.ListsViewModel
 
@@ -32,14 +34,22 @@ fun App(container: AppContainer) {
         startDestination = Lists,
     ) {
         composable<Lists> {
+            val context = LocalContext.current
             val viewModel: ListsViewModel =
-                viewModel { ListsViewModel(container.shoppingListRepository) }
+                viewModel {
+                    ListsViewModel(
+                        listRepository = container.shoppingListRepository,
+                        itemRepository = container.shoppingItemRepository,
+                        clipboard = AndroidListClipboard(context),
+                    )
+                }
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             ListsScreen(
                 uiState = uiState,
                 onCreateList = viewModel::createList,
                 onRenameList = viewModel::renameList,
                 onDeleteList = viewModel::deleteList,
+                onExportItems = viewModel::exportListItems,
                 onOpenList = { listId -> navController.navigate(Items(listId = ListId(listId))) },
             )
         }

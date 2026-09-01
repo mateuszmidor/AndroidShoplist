@@ -7,6 +7,8 @@ interface ShoppingItemRepository {
 
     fun observeItems(listId: UUID): Flow<List<ShoppingItemEntity>>
 
+    suspend fun getAllByList(listId: UUID): List<ShoppingItemEntity>
+
     suspend fun create(listId: UUID, name: String): UUID
 
     suspend fun createAll(listId: UUID, names: List<String>): List<UUID>

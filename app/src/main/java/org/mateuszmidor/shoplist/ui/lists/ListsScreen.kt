@@ -40,6 +40,7 @@ fun ListsScreen(
     onCreateList: (String) -> Unit,
     onRenameList: (UUID, String) -> Unit,
     onDeleteList: (UUID) -> Unit,
+    onExportItems: (UUID) -> Unit,
     onOpenList: (UUID) -> Unit,
 ) {
     var createDialogVisible by rememberSaveable { mutableStateOf(false) }
@@ -70,6 +71,7 @@ fun ListsScreen(
                     onMenuChange = { menuTargetId = it },
                     onRename = { id -> renameTargetId = id; menuTargetId = null },
                     onDelete = { id -> deleteTargetId = id; menuTargetId = null },
+                    onExport = { id -> onExportItems(id); menuTargetId = null },
                 )
             }
         }
@@ -131,6 +133,7 @@ private fun ListContent(
     onMenuChange: (UUID?) -> Unit,
     onRename: (UUID) -> Unit,
     onDelete: (UUID) -> Unit,
+    onExport: (UUID) -> Unit,
 ) {
     LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
         items(lists, key = { it.id }) { list ->
@@ -142,6 +145,7 @@ private fun ListContent(
                 onDismissMenu = { onMenuChange(null) },
                 onRename = { onRename(list.id) },
                 onDelete = { onDelete(list.id) },
+                onExport = { onExport(list.id) },
             )
             HorizontalDivider()
         }
@@ -157,6 +161,7 @@ private fun ListRow(
     onDismissMenu: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
+    onExport: () -> Unit,
 ) {
     Box {
         Column(
@@ -183,6 +188,7 @@ private fun ListRow(
         ) {
             DropdownMenuItem(text = { Text("Rename") }, onClick = onRename)
             DropdownMenuItem(text = { Text("Delete") }, onClick = onDelete)
+            DropdownMenuItem(text = { Text("Export items") }, onClick = onExport)
         }
     }
 }

@@ -8,14 +8,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.mateuszmidor.shoplist.data.ShoppingItemRepository
 import org.mateuszmidor.shoplist.data.ShoppingListRepository
+import org.mateuszmidor.shoplist.domain.ListonicExportFormatter
 
 class ListsViewModel(
-    private val repository: ShoppingListRepository,
+    private val listRepository: ShoppingListRepository,
+    private val itemRepository: ShoppingItemRepository,
+    private val clipboard: ListClipboard,
 ) : ViewModel() {
 
     val uiState: StateFlow<ListsUiState> =
-        repository.observeLists()
+        listRepository.observeLists()
             .map { ListsUiState(lists = it) }
             .stateIn(
                 scope = viewModelScope,
@@ -26,16 +30,23 @@ class ListsViewModel(
     fun createList(name: String) {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
-        viewModelScope.launch { repository.create(trimmed) }
+        viewModelScope.launch { listRepository.create(trimmed) }
     }
 
     fun renameList(id: UUID, name: String) {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
-        viewModelScope.launch { repository.rename(id, trimmed) }
+        viewModelScope.launch { listRepository.rename(id, trimmed) }
     }
 
     fun deleteList(id: UUID) {
-        viewModelScope.launch { repository.delete(id) }
+        viewModelScope.launch { listRepository.delete(id) }
+    }
+
+    fun exportListItems(listId: UUID) {
+        viewModelScope.launch {
+            val items = itemRepository.getAllByList(listId)
+            clipboard.copy(ListonicExportFormatter.format(items))
+        }
     }
 }

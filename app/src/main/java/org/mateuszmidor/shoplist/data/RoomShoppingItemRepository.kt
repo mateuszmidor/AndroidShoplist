@@ -10,6 +10,9 @@ class RoomShoppingItemRepository(
     override fun observeItems(listId: UUID): Flow<List<ShoppingItemEntity>> =
         dao.observeByList(listId)
 
+    override suspend fun getAllByList(listId: UUID): List<ShoppingItemEntity> =
+        dao.getAllByList(listId)
+
     override suspend fun create(listId: UUID, name: String): UUID {
         val id = UUID.randomUUID()
         dao.insert(ShoppingItemEntity(id = id, listId = listId, name = name, createdAt = System.currentTimeMillis()))

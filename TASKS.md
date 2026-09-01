@@ -117,3 +117,23 @@ Example import text (bullets are optional):
 - [x] Write integration tests for the atomic import in the data layer
 
 ---
+
+## Change 07: Export items from Lists screen
+
+**Goal**: Let the user export all items of a list to the phone clipboard as plain text in Listonic-compatible format. From the Lists screen the user long-presses a list and taps "Export items"; all items (bought and unbought) are formatted as bullet-prefixed lines and copied to the clipboard. A Toast confirms the action.
+
+Example exported text:
+```
+• mleko
+• jajka
+• chleb ciemny/bułki
+```
+
+- [x] Add snapshot query to fetch all items for a list (non-reactive)
+- [x] Add export action to ListsViewModel: format items as bullet-prefixed lines, copy to clipboard, show Toast
+- [x] Add "Export items" option to long-press context menu on Lists screen
+- [x] Write unit tests for the export formatting logic
+- [x] Write unit tests for the ViewModel export action
+- [x] Write integration tests for the snapshot query
+
+---

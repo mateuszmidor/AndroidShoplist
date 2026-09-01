@@ -22,6 +22,9 @@ class FakeShoppingItemRepository : ShoppingItemRepository {
     override fun observeItems(listId: UUID): Flow<List<ShoppingItemEntity>> =
         items.map { list -> list.filter { it.listId == listId } }
 
+    override suspend fun getAllByList(listId: UUID): List<ShoppingItemEntity> =
+        items.value.filter { it.listId == listId }
+
     override suspend fun create(listId: UUID, name: String): UUID {
         val id = UUID.randomUUID()
         items.value = order(

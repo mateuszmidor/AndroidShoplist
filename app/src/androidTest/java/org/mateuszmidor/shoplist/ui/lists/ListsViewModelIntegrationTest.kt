@@ -16,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mateuszmidor.shoplist.data.RoomShoppingItemRepository
 import org.mateuszmidor.shoplist.data.RoomShoppingListRepository
 import org.mateuszmidor.shoplist.data.ShoppingDatabase
 import org.mateuszmidor.shoplist.data.ShoppingItemEntity
@@ -39,13 +40,14 @@ class ListsViewModelIntegrationTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder<ShoppingDatabase>(context).build()
         val repository = RoomShoppingListRepository(database.shoppingListDao())
+        val itemRepository = RoomShoppingItemRepository(database.shoppingItemDao())
         viewModelStore = ViewModelStore()
         viewModel = ViewModelProvider(
             viewModelStore,
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                    ListsViewModel(repository) as T
+                    ListsViewModel(repository, itemRepository, ListClipboard {}) as T
             },
         )[ListsViewModel::class.java]
     }

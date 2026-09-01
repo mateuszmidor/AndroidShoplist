@@ -94,6 +94,41 @@ class RoomShoppingItemRepositoryTest {
     }
 
     @Test
+    fun getAllByList_returnsOnlyItemsScopedToTheListInDisplayOrder() = runTest {
+        val listId = createList()
+        val otherListId = createList()
+        val first = repository.create(listId, "One")
+        val second = repository.create(listId, "Two")
+        repository.create(otherListId, "Other")
+
+        val items = repository.getAllByList(listId)
+
+        assertEquals(listOf(first, second), items.map { it.id })
+        assertEquals(listOf("One", "Two"), items.map { it.name })
+    }
+
+    @Test
+    fun getAllByList_ordersUncheckedBeforeCheckedByCreationTime() = runTest {
+        val listId = createList()
+        val bread = repository.create(listId, "Bread")
+        val milk = repository.create(listId, "Milk")
+        val eggs = repository.create(listId, "Eggs")
+        repository.toggleBought(milk)
+
+        val names = repository.getAllByList(listId).map { it.name }
+
+        assertEquals(listOf("Bread", "Eggs", "Milk"), names)
+        assertEquals(listOf(bread, eggs, milk), repository.getAllByList(listId).map { it.id })
+    }
+
+    @Test
+    fun getAllByList_listWithNoItems_returnsEmptyList() = runTest {
+        val listId = createList()
+
+        assertTrue(repository.getAllByList(listId).isEmpty())
+    }
+
+    @Test
     fun createAll_persistsEveryItemInPastedOrderAfterExistingUnchecked() = runTest {
         val listId = createList()
         repository.create(listId, "Bread")

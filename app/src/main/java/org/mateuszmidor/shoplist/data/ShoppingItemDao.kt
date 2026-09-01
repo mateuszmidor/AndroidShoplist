@@ -12,6 +12,9 @@ interface ShoppingItemDao {
     @Query("SELECT * FROM shopping_items WHERE list_id = :listId ORDER BY bought ASC, created_at ASC, id ASC")
     fun observeByList(listId: UUID): Flow<List<ShoppingItemEntity>>
 
+    @Query("SELECT * FROM shopping_items WHERE list_id = :listId ORDER BY bought ASC, created_at ASC, id ASC")
+    suspend fun getAllByList(listId: UUID): List<ShoppingItemEntity>
+
     @Insert
     suspend fun insert(item: ShoppingItemEntity)
 

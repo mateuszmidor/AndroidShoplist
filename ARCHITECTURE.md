@@ -42,8 +42,7 @@ Based on https://github.com/mateuszmidor/ArchStudy/tree/master/Drivers
 - privacy - HIGH; all data stays on the phone in app-private storage, no network access, no data collection; nothing leaves the device
 - scalability - not applicable; single user, local data only
 - disaster recovery - MEDIUM; rely on Android automatic app-data backup (Google Drive lineage backup) - enabled via manifest/config, no manual export/import in initial scope
-- internationalisation (i18n) - MEDIUM; UI strings live in Android resource files so locales can be added without code changes; shipped locale: English
-- localisation (l10n) - LOW; no locale-specific formatting in scope (no dates/currencies/numbers besides item counts)
+- internationalisation / multi-language support - dropped; not needed for a single-user personal app, English only
 - accessibility - ignored; personal app, no screen-reader/font-scaling testing
 - monitoring - not applicable; no server, no ops team
 - management (runtime feature toggles) - not applicable

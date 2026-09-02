@@ -1,20 +1,30 @@
 package org.mateuszmidor.shoplist.ui.lists
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.util.UUID
@@ -42,17 +53,42 @@ fun ListsScreen(
     onDeleteList: (UUID) -> Unit,
     onExportItems: (UUID) -> Unit,
     onOpenList: (UUID) -> Unit,
+    onEnterSelection: (UUID) -> Unit,
+    onToggleSelection: (UUID) -> Unit,
+    onClearSelection: () -> Unit,
+    onCombine: (List<UUID>) -> Unit,
 ) {
     var createDialogVisible by rememberSaveable { mutableStateOf(false) }
-    var menuTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
     var renameTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
     var deleteTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
+    var menuExpandedId by rememberSaveable { mutableStateOf<UUID?>(null) }
+
+    BackHandler(enabled = uiState.selectionMode, onBack = onClearSelection)
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("ShopList") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(if (uiState.selectionMode) "Select lists" else "ShopList") },
+                navigationIcon = {
+                    if (uiState.selectionMode) {
+                        TextButton(onClick = onClearSelection) { Text("Cancel") }
+                    }
+                },
+                actions = {
+                    if (uiState.selectionMode) {
+                        TextButton(
+                            onClick = { onCombine(uiState.selectedIds.toList()) },
+                            enabled = uiState.selectedIds.isNotEmpty(),
+                        ) { Text("Combine") }
+                    }
+                },
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(onClick = { createDialogVisible = true }) {
-                Text("+", style = MaterialTheme.typography.headlineMedium)
+            if (!uiState.selectionMode) {
+                FloatingActionButton(onClick = { createDialogVisible = true }) {
+                    Text("+", style = MaterialTheme.typography.headlineMedium)
+                }
             }
         },
     ) { innerPadding ->
@@ -66,12 +102,17 @@ fun ListsScreen(
             } else {
                 ListContent(
                     lists = uiState.lists,
-                    menuTargetId = menuTargetId,
+                    selectionMode = uiState.selectionMode,
+                    selectedIds = uiState.selectedIds,
                     onOpenList = onOpenList,
-                    onMenuChange = { menuTargetId = it },
-                    onRename = { id -> renameTargetId = id; menuTargetId = null },
-                    onDelete = { id -> deleteTargetId = id; menuTargetId = null },
-                    onExport = { id -> onExportItems(id); menuTargetId = null },
+                    onEnterSelection = onEnterSelection,
+                    onToggleSelection = onToggleSelection,
+                    onRename = { id -> renameTargetId = id },
+                    onDelete = { id -> deleteTargetId = id },
+                    onExport = onExportItems,
+                    menuExpandedId = menuExpandedId,
+                    onMenuExpand = { id -> menuExpandedId = id },
+                    onMenuDismiss = { menuExpandedId = null },
                 )
             }
         }
@@ -128,47 +169,76 @@ fun ListsScreen(
 @Composable
 private fun ListContent(
     lists: List<ListSummary>,
-    menuTargetId: UUID?,
+    selectionMode: Boolean,
+    selectedIds: Set<UUID>,
     onOpenList: (UUID) -> Unit,
-    onMenuChange: (UUID?) -> Unit,
+    onEnterSelection: (UUID) -> Unit,
+    onToggleSelection: (UUID) -> Unit,
     onRename: (UUID) -> Unit,
     onDelete: (UUID) -> Unit,
     onExport: (UUID) -> Unit,
+    menuExpandedId: UUID?,
+    onMenuExpand: (UUID) -> Unit,
+    onMenuDismiss: () -> Unit,
 ) {
     LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
         items(lists, key = { it.id }) { list ->
             ListRow(
                 list = list,
-                menuExpanded = menuTargetId == list.id,
-                onClick = { onOpenList(list.id) },
-                onLongClick = { onMenuChange(list.id) },
-                onDismissMenu = { onMenuChange(null) },
+                selected = list.id in selectedIds,
+                selectionMode = selectionMode,
+                onClick = {
+                    if (selectionMode) onToggleSelection(list.id) else onOpenList(list.id)
+                },
+                onLongClick = { onEnterSelection(list.id) },
                 onRename = { onRename(list.id) },
                 onDelete = { onDelete(list.id) },
                 onExport = { onExport(list.id) },
+                menuExpanded = menuExpandedId == list.id,
+                onMenuExpand = { onMenuExpand(list.id) },
+                onMenuDismiss = onMenuDismiss,
             )
             HorizontalDivider()
         }
+        item { Spacer(Modifier.height(62.dp)) }
     }
 }
 
 @Composable
 private fun ListRow(
     list: ListSummary,
-    menuExpanded: Boolean,
+    selected: Boolean,
+    selectionMode: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    onDismissMenu: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
     onExport: () -> Unit,
+    menuExpanded: Boolean,
+    onMenuExpand: () -> Unit,
+    onMenuDismiss: () -> Unit,
 ) {
-    Box {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .background(
+                if (selected) MaterialTheme.colorScheme.primaryContainer
+                else Color.Transparent,
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (selectionMode) {
+            Checkbox(
+                checked = selected,
+                onCheckedChange = { onClick() },
+            )
+        }
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .weight(1f)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
         ) {
             Text(
                 text = list.name,
@@ -182,13 +252,29 @@ private fun ListRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = onDismissMenu,
-        ) {
-            DropdownMenuItem(text = { Text("Rename") }, onClick = onRename)
-            DropdownMenuItem(text = { Text("Delete") }, onClick = onDelete)
-            DropdownMenuItem(text = { Text("Export items") }, onClick = onExport)
+        if (!selectionMode) {
+            Box {
+                IconButton(onClick = onMenuExpand) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = onMenuDismiss,
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Rename") },
+                        onClick = { onMenuDismiss(); onRename() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Export items") },
+                        onClick = { onMenuDismiss(); onExport() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = { onMenuDismiss(); onDelete() },
+                    )
+                }
+            }
         }
     }
 }

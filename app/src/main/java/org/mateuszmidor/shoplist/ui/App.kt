@@ -11,10 +11,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlin.reflect.typeOf
 import org.mateuszmidor.shoplist.di.AppContainer
+import org.mateuszmidor.shoplist.navigation.Combined
 import org.mateuszmidor.shoplist.navigation.Items
 import org.mateuszmidor.shoplist.navigation.Lists
 import org.mateuszmidor.shoplist.navigation.ListId
+import org.mateuszmidor.shoplist.navigation.ListIdListNavType
 import org.mateuszmidor.shoplist.navigation.ListIdNavType
+import org.mateuszmidor.shoplist.ui.combined.CombinedScreen
+import org.mateuszmidor.shoplist.ui.combined.CombinedViewModel
 import org.mateuszmidor.shoplist.ui.items.ItemsScreen
 import org.mateuszmidor.shoplist.ui.items.ItemsViewModel
 import org.mateuszmidor.shoplist.ui.lists.AndroidListClipboard
@@ -51,6 +55,13 @@ fun App(container: AppContainer) {
                 onDeleteList = viewModel::deleteList,
                 onExportItems = viewModel::exportListItems,
                 onOpenList = { listId -> navController.navigate(Items(listId = ListId(listId))) },
+                onEnterSelection = viewModel::enterSelectionMode,
+                onToggleSelection = viewModel::toggleSelected,
+                onClearSelection = viewModel::clearSelection,
+                onCombine = { listIds ->
+                    navController.navigate(Combined(listIds = listIds.map { ListId(it) }))
+                    viewModel.clearSelection()
+                },
             )
         }
         composable<Items>(typeMap = mapOf(typeOf<ListId>() to ListIdNavType)) { backStackEntry ->
@@ -65,6 +76,26 @@ fun App(container: AppContainer) {
                 onDeleteItem = viewModel::deleteItem,
                 onToggleBought = viewModel::toggleItemBought,
                 onImportText = viewModel::importItems,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable<Combined>(
+            typeMap = mapOf(typeOf<List<ListId>>() to ListIdListNavType),
+        ) { backStackEntry ->
+            val route = backStackEntry.toRoute<Combined>()
+            val listIds = route.listIds.map { it.value }
+            val viewModel: CombinedViewModel =
+                viewModel {
+                    CombinedViewModel(
+                        container.shoppingItemRepository,
+                        container.shoppingListRepository,
+                        listIds,
+                    )
+                }
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            CombinedScreen(
+                uiState = uiState,
+                onToggleBought = viewModel::toggleItemBought,
                 onBack = { navController.popBackStack() },
             )
         }

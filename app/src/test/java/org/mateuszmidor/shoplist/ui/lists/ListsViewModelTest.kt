@@ -13,6 +13,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.UUID
@@ -148,6 +150,75 @@ class ListsViewModelTest {
         advanceUntilIdle()
 
         assertEquals("", clipboard.copied)
+    }
+
+    @Test
+    fun enterSelectionMode_selectsTheLongPressedListAndEnablesSelectionMode() = runTest(dispatcher) {
+        val repository = FakeShoppingListRepository()
+        val groceries = repository.create("Groceries")
+        val books = repository.create("Books")
+        val viewModel = ListsViewModel(repository, FakeShoppingItemRepository(), NoopClipboard())
+        collectState(viewModel)
+
+        viewModel.enterSelectionMode(groceries)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.selectionMode)
+        assertEquals(setOf(groceries), viewModel.uiState.value.selectedIds)
+    }
+
+    @Test
+    fun toggleSelected_addsAndRemovesIdsFromSelection() = runTest(dispatcher) {
+        val repository = FakeShoppingListRepository()
+        val groceries = repository.create("Groceries")
+        val books = repository.create("Books")
+        val viewModel = ListsViewModel(repository, FakeShoppingItemRepository(), NoopClipboard())
+        collectState(viewModel)
+
+        viewModel.enterSelectionMode(groceries)
+        viewModel.toggleSelected(books)
+        advanceUntilIdle()
+        assertEquals(setOf(groceries, books), viewModel.uiState.value.selectedIds)
+
+        viewModel.toggleSelected(groceries)
+        advanceUntilIdle()
+        assertEquals(setOf(books), viewModel.uiState.value.selectedIds)
+    }
+
+    @Test
+    fun clearSelection_exitsSelectionModeAndClearsSelection() = runTest(dispatcher) {
+        val repository = FakeShoppingListRepository()
+        val groceries = repository.create("Groceries")
+        val books = repository.create("Books")
+        val viewModel = ListsViewModel(repository, FakeShoppingItemRepository(), NoopClipboard())
+        collectState(viewModel)
+
+        viewModel.enterSelectionMode(groceries)
+        viewModel.toggleSelected(books)
+        advanceUntilIdle()
+
+        viewModel.clearSelection()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.selectionMode)
+        assertTrue(viewModel.uiState.value.selectedIds.isEmpty())
+    }
+
+    @Test
+    fun observe_reportsStableSelectionIndependentlyFromListsFlow() = runTest(dispatcher) {
+        val repository = FakeShoppingListRepository()
+        val groceries = repository.create("Groceries")
+        val viewModel = ListsViewModel(repository, FakeShoppingItemRepository(), NoopClipboard())
+        collectState(viewModel)
+
+        viewModel.enterSelectionMode(groceries)
+        advanceUntilIdle()
+
+        repository.create("Books")
+        advanceUntilIdle()
+
+        assertEquals(setOf(groceries), viewModel.uiState.value.selectedIds)
+        assertEquals(listOf("Groceries", "Books"), viewModel.uiState.value.lists.map { it.name })
     }
 
     private fun TestScope.collectState(viewModel: ListsViewModel) {

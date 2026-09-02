@@ -137,3 +137,23 @@ Example exported text:
 - [x] Write integration tests for the snapshot query
 
 ---
+
+## Change 08: Combined view
+
+**Goal**: Let the user shop across several lists at once. From the Lists screen the user
+selects a group of lists and starts a transient single-use combined view showing all items
+from the selected lists merged into one list (each item tagged with its source list,
+duplicates kept). It supports checking/unchecking only, and toggles write through to the
+owning list so the original lists stay authoritative; the combined view is discarded on exit.
+
+- [x] Add a multi-select mode on the Lists screen to choose the lists to combine
+- [x] Add a combined view screen that merges items from the selected lists into one list
+- [x] Show each item's source list as a small caption, keeping duplicates
+- [x] Enable check/uncheck only (no add/rename/delete) in the combined view
+- [x] Route check/uncheck to the owning list so the original lists stay authoritative
+- [x] Support back navigation / exit, discarding the combined view
+- [x] Write unit tests for the merge/split/ordering logic
+- [x] Write unit tests for the combined view ViewModel
+- [x] Write integration tests for the combined view feature
+
+---

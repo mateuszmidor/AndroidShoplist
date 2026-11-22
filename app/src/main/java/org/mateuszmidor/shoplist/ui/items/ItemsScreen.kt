@@ -121,6 +121,7 @@ fun ItemsScreen(
                 createDialogVisible = false
             },
             onDismiss = { createDialogVisible = false },
+            autoFocus = true,
         )
     }
 

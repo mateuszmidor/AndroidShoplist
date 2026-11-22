@@ -157,3 +157,11 @@ owning list so the original lists stay authoritative; the combined view is disca
 - [x] Write integration tests for the combined view feature
 
 ---
+
+
+## Change 09: Text input auto-focused when adding new list item
+
+**Goal**: When user clicks "Add item", he then needs to select the text input for item name manually.
+It should be selected/focused automatically so user can input the new item name rigth away.
+
+- [x] Focus the text input for new item automatically when the modal is shown

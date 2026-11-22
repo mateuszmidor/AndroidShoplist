@@ -1,12 +1,19 @@
 package org.mateuszmidor.shoplist.ui.items
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -19,20 +26,27 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import java.util.UUID
 import org.mateuszmidor.shoplist.data.ShoppingItemEntity
 import org.mateuszmidor.shoplist.domain.ListonicImportParser
@@ -50,6 +64,7 @@ fun ItemsScreen(
     onBack: () -> Unit,
 ) {
     var createDialogVisible by rememberSaveable { mutableStateOf(false) }
+    var newItemQuery by rememberSaveable { mutableStateOf("") }
     var importDialogVisible by rememberSaveable { mutableStateOf(false) }
     var fabMenuVisible by rememberSaveable { mutableStateOf(false) }
     var menuTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
@@ -77,6 +92,7 @@ fun ItemsScreen(
                         text = { Text("Add item") },
                         onClick = {
                             fabMenuVisible = false
+                            newItemQuery = ""
                             createDialogVisible = true
                         },
                     )
@@ -112,16 +128,21 @@ fun ItemsScreen(
     }
 
     if (createDialogVisible) {
-        NameDialog(
-            title = "New item",
-            initialName = "",
-            confirmLabel = "Add",
-            onConfirm = { name ->
-                onAddItem(name)
+        AddItemDialog(
+            query = newItemQuery,
+            matches = matchingBoughtItems(newItemQuery, uiState.items),
+            addEnabled = canAddItem(newItemQuery, uiState.items),
+            onQueryChange = { newItemQuery = it },
+            onUnmark = { id -> onToggleBought(id) },
+            onConfirm = {
+                onAddItem(newItemQuery)
+                newItemQuery = ""
                 createDialogVisible = false
             },
-            onDismiss = { createDialogVisible = false },
-            autoFocus = true,
+            onDismiss = {
+                newItemQuery = ""
+                createDialogVisible = false
+            },
         )
     }
 
@@ -146,6 +167,108 @@ fun ItemsScreen(
             },
             onDismiss = { renameTargetId = null },
         )
+    }
+}
+
+@Composable
+private fun AddItemDialog(
+    query: String,
+    matches: List<ShoppingItemEntity>,
+    addEnabled: Boolean,
+    onQueryChange: (String) -> Unit,
+    onUnmark: (UUID) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        ),
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(16.dp)
+                .imePadding(),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            ) {
+                Text("New item", style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    label = { Text("Name") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                )
+                if (query.isNotBlank() && !addEnabled) {
+                    Text(
+                        text = "Already on this list",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                if (matches.isEmpty()) {
+                    Text(
+                        text = if (query.isBlank()) "No bought items in this list." else "No matching bought items.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                    ) {
+                        items(matches, key = { it.id }) { item ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onUnmark(item.id) }
+                                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(
+                                    checked = true,
+                                    onCheckedChange = { onUnmark(item.id) },
+                                )
+                                Text(
+                                    text = item.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(start = 8.dp),
+                                )
+                            }
+                            HorizontalDivider()
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onConfirm, enabled = addEnabled) { Text("Add") }
+                }
+            }
+        }
     }
 }
 

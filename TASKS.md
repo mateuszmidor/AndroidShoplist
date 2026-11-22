@@ -165,3 +165,9 @@ owning list so the original lists stay authoritative; the combined view is disca
 It should be selected/focused automatically so user can input the new item name rigth away.
 
 - [x] Focus the text input for new item automatically when the modal is shown
+
+---
+
+## Change 10: New-item lookup
+
+- [x] Show matching bought items in the "Add item" dialog and un-mark them on tap

@@ -120,21 +120,25 @@ keyboard requested, so the user can type immediately without tapping the field.
 
 The dialog SHALL display every bought item of the current list when the name
 field is empty. As the user types, it SHALL display only bought items whose
-name contains the trimmed input, case-insensitively. Items from other lists
+name contains the trimmed input, ignoring case and Polish diacritics. For
+matching purposes, `a`/`ą`, `c`/`ć`, `e`/`ę`, `l`/`ł`, `n`/`ń`, `o`/`ó`,
+`s`/`ś`, and `z`/`ź`/`ż` SHALL be equivalent in both directions, including
+uppercase forms. This equivalence SHALL apply to matching only: stored names
+and displayed labels SHALL keep their original spelling. Items from other lists
 SHALL NOT be displayed. Tapping a displayed item SHALL un-mark it immediately
 and SHALL keep the dialog open.
 
-The "Add" action SHALL be disabled when the trimmed, case-insensitive name
-exactly matches any item in the current list, whether bought or not, and the
-dialog SHALL show an indication that the name is already on the list. A partial
-match SHALL be displayed but SHALL NOT disable "Add". Confirming with a
-non-empty trimmed name SHALL create an item in the current list. The dialog
-SHALL close without creating when cancelled, and SHALL NOT submit a blank or
-whitespace-only name. The rename, new-list, and import dialogs SHALL retain
-their existing behavior.
+The "Add" action SHALL be disabled when the trimmed name, compared ignoring
+case and the same Polish diacritics, exactly matches any item in the current
+list, whether bought or not, and the dialog SHALL show an indication that the
+name is already on the list. A partial match SHALL be displayed but SHALL NOT
+disable "Add". Confirming with a non-empty trimmed name SHALL create an item in
+the current list. The dialog SHALL close without creating when cancelled, and
+SHALL NOT submit a blank or whitespace-only name. The rename, new-list, and
+import dialogs SHALL retain their existing behavior.
 
 Feature: items-screen
-Rule: A FAB opens a create dialog that persists a new item in the current list and reveals bought items that may already match
+Rule: A FAB opens a create dialog that persists a new item in the current list and reveals bought items that may already match, ignoring case and Polish diacritics
 
 #### Scenario: Add an item from the FAB
 
@@ -163,8 +167,21 @@ Rule: A FAB opens a create dialog that persists a new item in the current list a
 - **GIVEN** the create-item dialog is open
 - **WHEN** the user types "milk"
 - **THEN** the dialog displays only bought items of the current list whose names
-  contain "milk", case-insensitively
+  contain "milk", ignoring case and Polish diacritics
 - **AND** the displayed results update as the input changes
+
+#### Scenario: Plain input matches a name with Polish diacritics
+
+- **GIVEN** the current list contains a bought item named "nić dentystyczna"
+- **WHEN** the user types "nic"
+- **THEN** "nić dentystyczna" is displayed as a matching bought item
+- **AND** the item label still shows "nić dentystyczna"
+
+#### Scenario: Input with Polish diacritics matches a plain name
+
+- **GIVEN** the current list contains a bought item named "losos"
+- **WHEN** the user types "łosoś"
+- **THEN** "losos" is displayed as a matching bought item
 
 #### Scenario: Un-mark a matched item from the dialog
 
@@ -181,6 +198,14 @@ Rule: A FAB opens a create dialog that persists a new item in the current list a
 - **THEN** the "Add" action is disabled
 - **AND** the dialog indicates that the name is already on the list
 - **AND** no new item is created
+
+#### Scenario: Diacritic-insensitive exact match disables Add
+
+- **GIVEN** the current list already contains an item named "nić"
+- **WHEN** the user enters "nic" in the create-item dialog
+- **THEN** the "Add" action is disabled
+- **AND** the dialog indicates that the name is already on the list
+- **AND** no new item named "nic" is created
 
 #### Scenario: Partial match does not disable Add
 

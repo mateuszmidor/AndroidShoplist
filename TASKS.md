@@ -171,3 +171,10 @@ It should be selected/focused automatically so user can input the new item name 
 ## Change 10: New-item lookup
 
 - [x] Show matching bought items in the "Add item" dialog and un-mark them on tap
+
+
+---
+
+## Change 11: Ignore diacritics in lookup
+
+- [x] Treat Polish diacritics as equivalent in the new-item lookup and duplicate protection, while preserving stored names and labels

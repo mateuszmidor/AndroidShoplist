@@ -14,9 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -42,6 +46,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,6 +71,7 @@ fun ItemsScreen(
 ) {
     var createDialogVisible by rememberSaveable { mutableStateOf(false) }
     var newItemQuery by rememberSaveable { mutableStateOf("") }
+    var lastAddedName by rememberSaveable { mutableStateOf<String?>(null) }
     var importDialogVisible by rememberSaveable { mutableStateOf(false) }
     var fabMenuVisible by rememberSaveable { mutableStateOf(false) }
     var menuTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
@@ -93,6 +100,7 @@ fun ItemsScreen(
                         onClick = {
                             fabMenuVisible = false
                             newItemQuery = ""
+                            lastAddedName = null
                             createDialogVisible = true
                         },
                     )
@@ -132,15 +140,20 @@ fun ItemsScreen(
             query = newItemQuery,
             matches = matchingBoughtItems(newItemQuery, uiState.items),
             addEnabled = canAddItem(newItemQuery, uiState.items),
-            onQueryChange = { newItemQuery = it },
+            lastAddedName = lastAddedName,
+            onQueryChange = {
+                newItemQuery = it
+                lastAddedName = null
+            },
             onUnmark = { id -> onToggleBought(id) },
-            onConfirm = {
+            onAdd = {
                 onAddItem(newItemQuery)
+                lastAddedName = newItemQuery.trim()
                 newItemQuery = ""
-                createDialogVisible = false
             },
             onDismiss = {
                 newItemQuery = ""
+                lastAddedName = null
                 createDialogVisible = false
             },
         )
@@ -175,13 +188,21 @@ private fun AddItemDialog(
     query: String,
     matches: List<ShoppingItemEntity>,
     addEnabled: Boolean,
+    lastAddedName: String?,
     onQueryChange: (String) -> Unit,
     onUnmark: (UUID) -> Unit,
-    onConfirm: () -> Unit,
+    onAdd: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    fun addAndKeepTyping() {
+        onAdd()
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -206,19 +227,43 @@ private fun AddItemDialog(
             ) {
                 Text("New item", style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    label = { Text("Name") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                )
-                if (query.isNotBlank() && !addEnabled) {
-                    Text(
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = onQueryChange,
+                        label = { Text("Name") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { if (addEnabled) addAndKeepTyping() },
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .focusRequester(focusRequester),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { addAndKeepTyping() },
+                        enabled = addEnabled,
+                        modifier = Modifier.height(56.dp),
+                    ) {
+                        Text("Add")
+                    }
+                }
+                when {
+                    query.isNotBlank() && !addEnabled -> Text(
                         text = "Already on this list",
                         color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+
+                    lastAddedName != null -> Text(
+                        text = "Added \"$lastAddedName\"",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 4.dp),
                     )
@@ -264,8 +309,7 @@ private fun AddItemDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
-                    TextButton(onClick = onConfirm, enabled = addEnabled) { Text("Add") }
+                    TextButton(onClick = onDismiss) { Text("Done") }
                 }
             }
         }

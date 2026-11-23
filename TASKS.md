@@ -178,3 +178,15 @@ It should be selected/focused automatically so user can input the new item name 
 ## Change 11: Ignore diacritics in lookup
 
 - [x] Treat Polish diacritics as equivalent in the new-item lookup and duplicate protection, while preserving stored names and labels
+
+
+---
+
+## Change 12: New-item multi-add
+
+**Goal**: Make the "New item" dialog a multi-add session so the user can add several items and un-mark bought matches without reopening it.
+
+- [x] Rename "Cancel" to "Done"; Done closes without creating a half-typed item
+- [x] Move "Add" beside the name field as a filled 56 dp button; footer keeps only "Done"
+- [x] Add persists the trimmed name, clears the field, keeps focus/keyboard, shows `Added "<name>"`, and leaves the dialog open
+- [x] Wire keyboard Done to the same add action when enabled; inert when Add is disabled

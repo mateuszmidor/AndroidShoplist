@@ -190,3 +190,18 @@ It should be selected/focused automatically so user can input the new item name 
 - [x] Move "Add" beside the name field as a filled 56 dp button; footer keeps only "Done"
 - [x] Add persists the trimmed name, clears the field, keeps focus/keyboard, shows `Added "<name>"`, and leaves the dialog open
 - [x] Wire keyboard Done to the same add action when enabled; inert when Add is disabled
+- [x] One hint slot: duplicate warning wins over add confirmation; typing or a fresh session clears confirmation
+- [x] Add instrumented Compose tests for multi-add dialog behavior
+- [x] Verify on Samsung Galaxy A52; run JVM and instrumented test suites
+
+
+---
+
+## Change 13: Move import to top-bar menu
+
+**Goal**: Make adding the common action (one tap) and move rare Listonic import to a top-bar overflow menu.
+
+- [x] FAB (+) opens AddItemDialog directly; remove FAB menu
+- [x] Add TopAppBar `MoreVert` overflow action with "Import from Listonic" opening the existing ImportDialog
+- [x] Update instrumented tests for the direct-add FAB flow
+- [x] Verify on Samsung Galaxy A52; run JVM and instrumented test suites

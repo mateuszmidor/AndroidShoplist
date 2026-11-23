@@ -49,7 +49,6 @@ class ItemLookupDiacriticsUiTest {
         composeRule.setContent { App(container) }
         composeRule.onNodeWithText("Lookup test").performClick()
         composeRule.onNodeWithText("+").performClick()
-        composeRule.onNodeWithText("Add item").performClick()
 
         composeRule.onNode(hasSetTextAction()).performTextInput("łosoś")
         assertLastDisplayed("losos")

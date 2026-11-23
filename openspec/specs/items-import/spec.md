@@ -97,25 +97,27 @@ Rule: A batch append is atomic and preserves the pasted order within the uncheck
 - **AND** none of the batch's items are persisted
 - **AND** the list's item stream is unchanged
 
-### Requirement: The items screen offers FAB actions and a paste-based import dialog
+### Requirement: The items screen offers a top-bar import action and a paste-based import dialog
 
-The items screen SHALL present its FAB as a small menu with two actions: "Add
-item", which opens the existing single-item create dialog, and "Import from
-Listonic", which opens the import dialog. The import dialog SHALL provide a
-multi-line paste field and SHALL target the currently open list without any
-list selector. The dialog's import action SHALL be disabled whenever the
-pasted text yields no items, be enabled otherwise, and SHALL, when confirmed,
-append the parsed items to the open list and close the dialog. Cancelling the
-dialog SHALL close it without importing anything.
+The items screen SHALL present a `MoreVert` overflow action in the top app bar.
+The overflow menu SHALL offer "Import from Listonic", which opens the import
+dialog. The FAB SHALL NOT present an import action; adding items remains the
+FAB's direct action as defined by the items-screen capability.
+
+The import dialog SHALL provide a multi-line paste field and SHALL target the
+currently open list without any list selector. The dialog's import action SHALL
+be disabled whenever the pasted text yields no items, be enabled otherwise, and
+SHALL, when confirmed, append the parsed items to the open list and close the
+dialog. Cancelling the dialog SHALL close it without importing anything.
 
 Feature: items-import
-Rule: The items screen serves single-item add and paste-import from one FAB menu
+Rule: The items screen serves paste-import from a top-bar overflow menu
 
-#### Scenario: The FAB menu offers both add and import
+#### Scenario: The MoreVert menu offers import from Listonic
 
 - **GIVEN** the items screen for a list is visible
-- **WHEN** the user taps the FAB
-- **THEN** a menu appears offering "Add item" and "Import from Listonic"
+- **WHEN** the user taps the `MoreVert` overflow action in the top app bar
+- **THEN** a menu appears offering "Import from Listonic"
 
 #### Scenario: The import dialog targets the open list with no list selector
 

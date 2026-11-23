@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -27,6 +29,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -73,7 +77,7 @@ fun ItemsScreen(
     var newItemQuery by rememberSaveable { mutableStateOf("") }
     var lastAddedName by rememberSaveable { mutableStateOf<String?>(null) }
     var importDialogVisible by rememberSaveable { mutableStateOf(false) }
-    var fabMenuVisible by rememberSaveable { mutableStateOf(false) }
+    var overflowMenuVisible by remember { mutableStateOf(false) }
     var menuTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
     var renameTargetId by rememberSaveable { mutableStateOf<UUID?>(null) }
 
@@ -84,34 +88,36 @@ fun ItemsScreen(
                 navigationIcon = {
                     TextButton(onClick = onBack) { Text("Back") }
                 },
+                actions = {
+                    Box {
+                        IconButton(onClick = { overflowMenuVisible = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                        }
+                        DropdownMenu(
+                            expanded = overflowMenuVisible,
+                            onDismissRequest = { overflowMenuVisible = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Import from Listonic") },
+                                onClick = {
+                                    overflowMenuVisible = false
+                                    importDialogVisible = true
+                                },
+                            )
+                        }
+                    }
+                },
             )
         },
         floatingActionButton = {
-            Box {
-                FloatingActionButton(onClick = { fabMenuVisible = true }) {
-                    Text("+", style = MaterialTheme.typography.headlineMedium)
-                }
-                DropdownMenu(
-                    expanded = fabMenuVisible,
-                    onDismissRequest = { fabMenuVisible = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Add item") },
-                        onClick = {
-                            fabMenuVisible = false
-                            newItemQuery = ""
-                            lastAddedName = null
-                            createDialogVisible = true
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Import from Listonic") },
-                        onClick = {
-                            fabMenuVisible = false
-                            importDialogVisible = true
-                        },
-                    )
-                }
+            FloatingActionButton(
+                onClick = {
+                    newItemQuery = ""
+                    lastAddedName = null
+                    createDialogVisible = true
+                },
+            ) {
+                Text("+", style = MaterialTheme.typography.headlineMedium)
             }
         },
     ) { innerPadding ->

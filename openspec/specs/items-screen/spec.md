@@ -170,7 +170,7 @@ Rule: A FAB opens a create dialog that persists a new item in the current list a
 #### Scenario: Name field is focused when the create dialog opens
 
 - **GIVEN** the items screen for a list is visible
-- **WHEN** the user taps the FAB and chooses "Add item"
+- **WHEN** the user taps the FAB
 - **THEN** the create-item dialog opens with the name field focused
 - **AND** the soft keyboard is shown, so the user can type immediately
 

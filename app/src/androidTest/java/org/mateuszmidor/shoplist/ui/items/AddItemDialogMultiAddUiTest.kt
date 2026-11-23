@@ -120,7 +120,6 @@ class AddItemDialogMultiAddUiTest {
         composeRule.setContent { App(container) }
         composeRule.onNodeWithText("Multi-add test").performClick()
         composeRule.onNodeWithText("+").performClick()
-        composeRule.onNodeWithText("Add item").performClick()
     }
 
     private fun typeName(name: String) {
